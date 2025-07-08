@@ -1,10 +1,12 @@
+
 import 'package:decaf/pages/charts.dart';
 import 'package:decaf/pages/home.dart';
-import 'package:decaf/pages/profile.dart';
+import 'package:decaf/widgets/add_caffeine_modal.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -17,7 +19,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MainScreen(),
+      home: const MainScreen(),
     );
   }
 }
@@ -31,11 +33,11 @@ class MainScreen extends StatefulWidget {
 
 class MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
-  
+
   // List of pages
   final List<Widget> _pages = [
-    HomePage(),
-    LineChartSample1(),
+    const HomePage(),
+    const LineChartSample1(),
   ];
 
   void _onItemTapped(int index) {
@@ -51,20 +53,34 @@ class MainScreenState extends State<MainScreen> {
         index: _selectedIndex,
         children: _pages,
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.analytics),
-            label: 'Analyze',
-          ),
-        ],
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          showModalBottomSheet(
+            context: context,
+            builder: (context) => const AddCaffeineModal(),
+          );
+        },
+        child: const Icon(Icons.add),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: BottomAppBar(
+        shape: const CircularNotchedRectangle(),
+        notchMargin: 8.0,
+        child: BottomNavigationBar(
+          currentIndex: _selectedIndex,
+          onTap: _onItemTapped,
+          type: BottomNavigationBarType.fixed,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.analytics),
+              label: 'Analyze',
+            ),
+          ],
+        ),
       ),
     );
   }
