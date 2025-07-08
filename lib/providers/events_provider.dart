@@ -1,10 +1,10 @@
 
-import 'package:riverpod/riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sembast/sembast_io.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart';
 
-enum EventName {
+enum EventType {
   caffeine,
   headache,
   brainFog,
@@ -13,20 +13,23 @@ enum EventName {
 }
 
 class Event {
-  Event({required this.name, required this.value, required this.timestamp});
+  Event({required this.type, required this.name, required this.value, required this.timestamp});
 
-  final EventName name;
+  final EventType type;
+  final String name;
   final double value;
   final int timestamp;
 
   Map<String, dynamic> toJson() => {
-    'name': name.name,
+    'type': type.name,
+    'name': name,
     'value': value,
     'timestamp': timestamp,
   };
 
   static Event fromJson(Map<String, dynamic> json) => Event(
-    name: EventName.values.byName(json['name'] as String),
+    type: EventType.values.byName(json['type'] as String),
+    name: json['name'] as String,
     value: (json['value'] as num).toDouble(),
     timestamp: json['timestamp'] as int,
   );
@@ -58,8 +61,9 @@ class EventNotifier extends AsyncNotifier<List<Event>> {
     }).toList();
   }
 
-  Future<void> addEvent(EventName name, double value) async {
+  Future<void> addEvent(EventType type, String name, double value) async {
     final event = Event(
+      type: type,
       name: name,
       value: value,
       timestamp: DateTime.now().millisecondsSinceEpoch,
