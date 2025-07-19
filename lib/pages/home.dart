@@ -3,6 +3,8 @@ import 'package:decaf/providers/date_provider.dart';
 import 'package:decaf/providers/events_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:decaf/widgets/caffeine_list_view.dart';
+import 'package:decaf/widgets/input_slider.dart';
 import 'package:intl/intl.dart';
 
 class HomePage extends ConsumerWidget {
@@ -31,7 +33,10 @@ class HomePage extends ConsumerWidget {
   }
 
   Future<void> _showDeleteConfirmationDialog(
-      BuildContext context, WidgetRef ref, Event event) async {
+    BuildContext context,
+    WidgetRef ref,
+    Event event,
+  ) async {
     return showDialog<void>(
       context: context,
       builder: (BuildContext context) {
@@ -89,8 +94,8 @@ class HomePage extends ConsumerWidget {
                 IconButton(
                   icon: const Icon(Icons.chevron_left),
                   onPressed: () {
-                    ref.read(selectedDateProvider.notifier).state =
-                        selectedDate.subtract(const Duration(days: 1));
+                    ref.read(selectedDateProvider.notifier).state = selectedDate
+                        .subtract(const Duration(days: 1));
                   },
                 ),
                 Text(
@@ -105,58 +110,51 @@ class HomePage extends ConsumerWidget {
                   child: IconButton(
                     icon: const Icon(Icons.chevron_right),
                     onPressed: () {
-                      ref.read(selectedDateProvider.notifier).state =
-                          selectedDate.add(const Duration(days: 1));
+                      ref
+                          .read(selectedDateProvider.notifier)
+                          .state = selectedDate.add(const Duration(days: 1));
                     },
                   ),
-                )
+                ),
               ],
             ),
           ),
-          Expanded(
+          Flexible(
             child: eventsAsync.when(
               data: (events) {
-                final caffeineEvents = events.where((event) {
-                  final eventDate =
-                      DateTime.fromMillisecondsSinceEpoch(event.timestamp);
-                  return event.type == EventType.caffeine &&
-                      eventDate.year == selectedDate.year &&
-                      eventDate.month == selectedDate.month &&
-                      eventDate.day == selectedDate.day;
-                }).toList();
+                final caffeineEvents =
+                    events.where((event) {
+                      final eventDate = DateTime.fromMillisecondsSinceEpoch(
+                        event.timestamp,
+                      );
+                      return event.type == EventType.caffeine &&
+                          eventDate.year == selectedDate.year &&
+                          eventDate.month == selectedDate.month &&
+                          eventDate.day == selectedDate.day;
+                    }).toList();
 
-                if (caffeineEvents.isEmpty) {
-                  return const Center(
-                      child: Text('No caffeine tracked for this day.'));
-                }
-
-                return ListView.builder(
-                  itemCount: caffeineEvents.length,
-                  itemBuilder: (context, index) {
-                    final event = caffeineEvents[index];
-                    return Card(
-                      elevation: 2,
-                      margin: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                      child: ListTile(
-                        title: Text(event.name),
-                        trailing: Text('${event.value.toStringAsFixed(0)}mg'),
-                        onLongPress: () =>
-                            _showDeleteConfirmationDialog(context, ref, event),
-                      ),
-                    );
-                  },
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CaffeineListView(
+                      caffeineEvents: caffeineEvents,
+                      showDeleteConfirmationDialog: _showDeleteConfirmationDialog,
+                    ),
+                    const InputSlider(
+                      label: "Brain Fog",
+                      lowEmoji: "🧠",
+                      highEmoji: "🌫️",
+                    ),
+                  ],
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, stackTrace) => Center(child: Text('Error: $error')),
+              error:
+                  (error, stackTrace) => Center(child: Text('Error: $error')),
             ),
           ),
         ],
       ),
-      
     );
   }
 }
