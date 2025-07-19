@@ -143,7 +143,10 @@ class HomePage extends ConsumerWidget {
                     const InputSlider(
                       label: "Brain Fog",
                       lowEmoji: "🧠",
+                      lowText: "Clear Minded",
                       highEmoji: "🌫️",
+                      highText: "Super Foggy",
+                      value: null,
                     ),
                   ],
                 );
