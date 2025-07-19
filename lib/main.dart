@@ -1,4 +1,3 @@
-
 import 'package:decaf/pages/charts.dart';
 import 'package:decaf/pages/home.dart';
 import 'package:decaf/widgets/add_caffeine_modal.dart';
@@ -16,9 +15,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Bottom Navigation Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
+      theme: ThemeData(primarySwatch: Colors.blue),
       home: const MainScreen(),
     );
   }
@@ -35,10 +32,7 @@ class MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
   // List of pages
-  final List<Widget> _pages = [
-    const HomePage(),
-    const LineChartSample1(),
-  ];
+  final List<Widget> _pages = [const HomePage(), const LineChartSample1()];
 
   void _onItemTapped(int index) {
     setState(() {
@@ -49,10 +43,7 @@ class MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _pages,
-      ),
+      body: IndexedStack(index: _selectedIndex, children: _pages),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           showModalBottomSheet(
@@ -66,18 +57,27 @@ class MainScreenState extends State<MainScreen> {
       bottomNavigationBar: BottomAppBar(
         shape: const CircularNotchedRectangle(),
         notchMargin: 8.0,
-        child: BottomNavigationBar(
-          currentIndex: _selectedIndex,
-          onTap: _onItemTapped,
-          type: BottomNavigationBarType.fixed,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.analytics),
-              label: 'Analyze',
+        child: Wrap(
+          children: [
+            Theme(
+              data: ThemeData(splashColor: Colors.transparent),
+              child: BottomNavigationBar(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                currentIndex: _selectedIndex,
+                onTap: _onItemTapped,
+                type: BottomNavigationBarType.fixed,
+                items: const [
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.home),
+                    label: 'Home',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.analytics),
+                    label: 'Analyze',
+                  ),
+                ],
+              ),
             ),
           ],
         ),
