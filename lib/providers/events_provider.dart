@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sembast/sembast_io.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart';
+import 'package:uuid/uuid.dart';
 
 enum EventType { caffeine, headache, brainFog, anxiety, fatigue }
 
@@ -14,7 +15,7 @@ class Event {
     required this.timestamp,
   });
 
-  final int id;
+  final String id;
   final EventType type;
   final String name;
   final double value;
@@ -27,7 +28,7 @@ class Event {
         'timestamp': timestamp,
       };
 
-  static Event fromJson(Map<String, dynamic> json, int id) => Event(
+  static Event fromJson(Map<String, dynamic> json, String id) => Event(
         id: id,
         type: EventType.values.byName(json['type'] as String),
         name: json['name'] as String,
@@ -38,7 +39,8 @@ class Event {
 
 class EventNotifier extends AsyncNotifier<List<Event>> {
   Database? _db;
-  final _store = intMapStoreFactory.store('event');
+  final _store = stringMapStoreFactory.store('events');
+  final _uuid = const Uuid();
 
   @override
   Future<List<Event>> build() async {
@@ -74,7 +76,8 @@ class EventNotifier extends AsyncNotifier<List<Event>> {
       'timestamp': timestamp.millisecondsSinceEpoch,
     };
 
-    final newId = await _store.add(_db!, eventData);
+    final newId = _uuid.v4();
+    await _store.record(newId).add(_db!, eventData);
 
     final newEvent = Event(
       id: newId,
@@ -88,7 +91,7 @@ class EventNotifier extends AsyncNotifier<List<Event>> {
     state = AsyncData([...previousState, newEvent]);
   }
 
-  Future<void> deleteEvent(int eventId) async {
+  Future<void> deleteEvent(String eventId) async {
     await _store.record(eventId).delete(_db!);
     final previousState = await future;
     state = AsyncData(previousState.where((event) => event.id != eventId).toList());

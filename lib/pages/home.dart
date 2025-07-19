@@ -1,7 +1,6 @@
 import 'package:decaf/pages/profile.dart';
 import 'package:decaf/providers/date_provider.dart';
 import 'package:decaf/providers/events_provider.dart';
-import 'package:decaf/widgets/add_caffeine_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -157,15 +156,7 @@ class HomePage extends ConsumerWidget {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showModalBottomSheet(
-            context: context,
-            builder: (context) => const AddCaffeineModal(),
-          );
-        },
-        child: const Icon(Icons.add),
-      ),
+      
     );
   }
 }
