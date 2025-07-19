@@ -1,4 +1,4 @@
-import 'package:decaf/pages/profile.dart';
+import 'package:decaf/pages/settings.dart';
 import 'package:decaf/providers/date_provider.dart';
 import 'package:decaf/providers/events_provider.dart';
 import 'package:flutter/material.dart';
@@ -74,11 +74,11 @@ class HomePage extends ConsumerWidget {
         title: const Text('Home'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.person),
+            icon: const Icon(Icons.settings),
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const ProfilePage()),
+                MaterialPageRoute(builder: (context) => const SettingsPage()),
               );
             },
           ),
@@ -147,6 +147,30 @@ class HomePage extends ConsumerWidget {
                       highEmoji: "🌫️",
                       highText: "Super Foggy",
                       eventType: EventType.brainFog,
+                    ),
+                    const InputSlider(
+                      label: "Headache",
+                      lowEmoji: "😊",
+                      lowText: "No Headache",
+                      highEmoji: "🤕",
+                      highText: "Severe Headache",
+                      eventType: EventType.headache,
+                    ),
+                    const InputSlider(
+                      label: "Anxiety",
+                      lowEmoji: "😌",
+                      lowText: "Calm",
+                      highEmoji: "😥",
+                      highText: "Anxious",
+                      eventType: EventType.anxiety,
+                    ),
+                    const InputSlider(
+                      label: "Fatigue",
+                      lowEmoji: "⚡",
+                      lowText: "Energized",
+                      highEmoji: "😴",
+                      highText: "Exhausted",
+                      eventType: EventType.fatigue,
                     ),
                   ],
                 );

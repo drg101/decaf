@@ -102,6 +102,11 @@ class EventNotifier extends AsyncNotifier<List<Event>> {
     final previousState = await future;
     state = AsyncData(previousState.where((event) => event.id != eventId).toList());
   }
+
+  Future<void> clearAllEvents() async {
+    await _store.drop(_db!); // Clears all records from the store
+    state = const AsyncData([]); // Set state to an empty list
+  }
 }
 
 final eventsProvider = AsyncNotifierProvider<EventNotifier, List<Event>>(() {
