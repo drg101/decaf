@@ -1,43 +1,44 @@
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sembast/sembast_io.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart';
 
-enum EventType {
-  caffeine,
-  headache,
-  brainFog,
-  anxiety,
-  fatigue,
-}
+enum EventType { caffeine, headache, brainFog, anxiety, fatigue }
 
 class Event {
-  Event({required this.type, required this.name, required this.value, required this.timestamp});
+  Event({
+    required this.id,
+    required this.type,
+    required this.name,
+    required this.value,
+    required this.timestamp,
+  });
 
+  final int id;
   final EventType type;
   final String name;
   final double value;
   final int timestamp;
 
   Map<String, dynamic> toJson() => {
-    'type': type.name,
-    'name': name,
-    'value': value,
-    'timestamp': timestamp,
-  };
+        'type': type.name,
+        'name': name,
+        'value': value,
+        'timestamp': timestamp,
+      };
 
-  static Event fromJson(Map<String, dynamic> json) => Event(
-    type: EventType.values.byName(json['type'] as String),
-    name: json['name'] as String,
-    value: (json['value'] as num).toDouble(),
-    timestamp: json['timestamp'] as int,
-  );
+  static Event fromJson(Map<String, dynamic> json, int id) => Event(
+        id: id,
+        type: EventType.values.byName(json['type'] as String),
+        name: json['name'] as String,
+        value: (json['value'] as num).toDouble(),
+        timestamp: json['timestamp'] as int,
+      );
 }
 
 class EventNotifier extends AsyncNotifier<List<Event>> {
   Database? _db;
-  final _store = stringMapStoreFactory.store('events');
+  final _store = intMapStoreFactory.store('event');
 
   @override
   Future<List<Event>> build() async {
@@ -55,24 +56,42 @@ class EventNotifier extends AsyncNotifier<List<Event>> {
 
   Future<List<Event>> _loadEvents() async {
     final snapshots = await _store.find(_db!);
-    return snapshots.map((snapshot) {
-      final event = Event.fromJson(snapshot.value);
-      return event;
-    }).toList();
+    return snapshots
+        .map((snapshot) => Event.fromJson(snapshot.value, snapshot.key))
+        .toList();
   }
 
-  Future<void> addEvent(EventType type, String name, double value) async {
-    final event = Event(
+  Future<void> addEvent(
+    EventType type,
+    String name,
+    double value,
+    DateTime timestamp,
+  ) async {
+    final eventData = {
+      'type': type.name,
+      'name': name,
+      'value': value,
+      'timestamp': timestamp.millisecondsSinceEpoch,
+    };
+
+    final newId = await _store.add(_db!, eventData);
+
+    final newEvent = Event(
+      id: newId,
       type: type,
       name: name,
       value: value,
-      timestamp: DateTime.now().millisecondsSinceEpoch,
+      timestamp: timestamp.millisecondsSinceEpoch,
     );
 
-    await _store.add(_db!, event.toJson());
-
     final previousState = await future;
-    state = AsyncData([...previousState, event]);
+    state = AsyncData([...previousState, newEvent]);
+  }
+
+  Future<void> deleteEvent(int eventId) async {
+    await _store.record(eventId).delete(_db!);
+    final previousState = await future;
+    state = AsyncData(previousState.where((event) => event.id != eventId).toList());
   }
 }
 
