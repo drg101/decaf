@@ -91,6 +91,12 @@ class EventNotifier extends AsyncNotifier<List<Event>> {
     state = AsyncData([...previousState, newEvent]);
   }
 
+  Future<void> updateEvent(Event updatedEvent) async {
+    await _store.record(updatedEvent.id).put(_db!, updatedEvent.toJson());
+    final previousState = await future;
+    state = AsyncData(previousState.map((event) => event.id == updatedEvent.id ? updatedEvent : event).toList());
+  }
+
   Future<void> deleteEvent(String eventId) async {
     await _store.record(eventId).delete(_db!);
     final previousState = await future;

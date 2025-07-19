@@ -146,7 +146,7 @@ class HomePage extends ConsumerWidget {
                       lowText: "Clear Minded",
                       highEmoji: "🌫️",
                       highText: "Super Foggy",
-                      value: null,
+                      eventType: EventType.brainFog,
                     ),
                   ],
                 );
