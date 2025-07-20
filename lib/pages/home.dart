@@ -1,6 +1,7 @@
 import 'package:decaf/pages/settings.dart';
 import 'package:decaf/providers/date_provider.dart';
 import 'package:decaf/providers/events_provider.dart';
+import 'package:decaf/widgets/daily_caffeine_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:decaf/widgets/caffeine_list_view.dart';
@@ -119,6 +120,7 @@ class HomePage extends ConsumerWidget {
               ],
             ),
           ),
+          const DailyCaffeineChart(),
           Flexible(
             child: eventsAsync.when(
               data: (events) {
