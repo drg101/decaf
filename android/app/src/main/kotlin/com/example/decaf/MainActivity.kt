@@ -1,4 +1,4 @@
-package com.example.decaf
+package com.rootcause.decaf
 
 import io.flutter.embedding.android.FlutterActivity
 
