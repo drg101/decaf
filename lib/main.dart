@@ -28,7 +28,7 @@ class MainScreen extends ConsumerWidget {
 
   final List<Widget> _pages = const [
     HomePage(),
-    LineChartSample1(),
+    ChartsPage(),
   ];
 
   @override
