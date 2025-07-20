@@ -4,6 +4,8 @@ import 'package:decaf/widgets/add_caffeine_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+final pageIndexProvider = StateProvider<int>((ref) => 0);
+
 void main() {
   runApp(const ProviderScope(child: MyApp()));
 }
@@ -21,29 +23,20 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MainScreen extends StatefulWidget {
+class MainScreen extends ConsumerWidget {
   const MainScreen({super.key});
 
-  @override
-  MainScreenState createState() => MainScreenState();
-}
-
-class MainScreenState extends State<MainScreen> {
-  int _selectedIndex = 0;
-
-  // List of pages
-  final List<Widget> _pages = [const HomePage(), const LineChartSample1()];
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
+  final List<Widget> _pages = const [
+    HomePage(),
+    LineChartSample1(),
+  ];
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedIndex = ref.watch(pageIndexProvider);
+
     return Scaffold(
-      body: IndexedStack(index: _selectedIndex, children: _pages),
+      body: IndexedStack(index: selectedIndex, children: _pages),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           showModalBottomSheet(
@@ -64,8 +57,8 @@ class MainScreenState extends State<MainScreen> {
               child: BottomNavigationBar(
                 backgroundColor: Colors.transparent,
                 elevation: 0,
-                currentIndex: _selectedIndex,
-                onTap: _onItemTapped,
+                currentIndex: selectedIndex,
+                onTap: (index) => ref.read(pageIndexProvider.notifier).state = index,
                 type: BottomNavigationBarType.fixed,
                 items: const [
                   BottomNavigationBarItem(

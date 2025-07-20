@@ -97,19 +97,6 @@ class DailyCaffeineChart extends ConsumerWidget {
                 borderData: FlBorderData(show: false),
                 barTouchData: BarTouchData(
                   enabled: true,
-                  touchTooltipData: BarTouchTooltipData(
-                    getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                      final day = sortedDays[group.x.toInt()];
-                      final total = rod.toY;
-                      return BarTooltipItem(
-                        '${DateFormat.yMMMd().format(day)}\n${total.toStringAsFixed(0)} mg',
-                        TextStyle(
-                          color: Theme.of(context).colorScheme.onPrimary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      );
-                    },
-                  ),
                   touchCallback: (event, response) {
                     if (response != null &&
                         response.spot != null &&

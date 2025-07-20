@@ -1,3 +1,4 @@
+import 'package:decaf/main.dart';
 import 'package:decaf/pages/settings.dart';
 import 'package:decaf/providers/date_provider.dart';
 import 'package:decaf/providers/events_provider.dart';
@@ -85,62 +86,107 @@ class HomePage extends ConsumerWidget {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.chevron_left),
-                  onPressed: () {
-                    ref.read(selectedDateProvider.notifier).state = selectedDate
-                        .subtract(const Duration(days: 1));
-                  },
-                ),
-                Text(
-                  _formatDate(selectedDate),
-                  style: Theme.of(context).textTheme.headlineSmall,
-                ),
-                Visibility(
-                  visible: !isToday,
-                  maintainSize: true,
-                  maintainAnimation: true,
-                  maintainState: true,
-                  child: IconButton(
-                    icon: const Icon(Icons.chevron_right),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.chevron_left),
                     onPressed: () {
-                      ref
-                          .read(selectedDateProvider.notifier)
-                          .state = selectedDate.add(const Duration(days: 1));
+                      ref.read(selectedDateProvider.notifier).state =
+                          selectedDate.subtract(const Duration(days: 1));
                     },
                   ),
-                ),
-              ],
+                  Text(
+                    _formatDate(selectedDate),
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  Visibility(
+                    visible: !isToday,
+                    maintainSize: true,
+                    maintainAnimation: true,
+                    maintainState: true,
+                    child: IconButton(
+                      icon: const Icon(Icons.chevron_right),
+                      onPressed: () {
+                        ref.read(selectedDateProvider.notifier).state =
+                            selectedDate.add(const Duration(days: 1));
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const DailyCaffeineChart(),
-          Flexible(
-            child: eventsAsync.when(
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Progress',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      ref.read(pageIndexProvider.notifier).state = 1;
+                    },
+                    child: const Text('See more'),
+                  )
+                ],
+              ),
+            ),
+            const DailyCaffeineChart(),
+            eventsAsync.when(
               data: (events) {
-                final caffeineEvents =
-                    events.where((event) {
-                      final eventDate = DateTime.fromMillisecondsSinceEpoch(
-                        event.timestamp,
-                      );
-                      return event.type == EventType.caffeine &&
-                          eventDate.year == selectedDate.year &&
-                          eventDate.month == selectedDate.month &&
-                          eventDate.day == selectedDate.day;
-                    }).toList();
+                final caffeineEvents = events.where((event) {
+                  final eventDate = DateTime.fromMillisecondsSinceEpoch(
+                    event.timestamp,
+                  );
+                  return event.type == EventType.caffeine &&
+                      eventDate.year == selectedDate.year &&
+                      eventDate.month == selectedDate.month &&
+                      eventDate.day == selectedDate.day;
+                }).toList();
+
+                final totalCaffeine = caffeineEvents.fold<double>(
+                    0,
+                    (previousValue, element) =>
+                        previousValue + element.value);
+
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    'Total: ${totalCaffeine.toStringAsFixed(0)} mg',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                );
+              },
+              loading: () => const SizedBox.shrink(),
+              error: (error, stackTrace) => const SizedBox.shrink(),
+            ),
+            eventsAsync.when(
+              data: (events) {
+                final caffeineEvents = events.where((event) {
+                  final eventDate = DateTime.fromMillisecondsSinceEpoch(
+                    event.timestamp,
+                  );
+                  return event.type == EventType.caffeine &&
+                      eventDate.year == selectedDate.year &&
+                      eventDate.month == selectedDate.month &&
+                      eventDate.day == selectedDate.day;
+                }).toList();
 
                 return Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     CaffeineListView(
                       caffeineEvents: caffeineEvents,
-                      showDeleteConfirmationDialog: _showDeleteConfirmationDialog,
+                      showDeleteConfirmationDialog:
+                          _showDeleteConfirmationDialog,
                     ),
                     const InputSlider(
                       label: "Brain Fog",
@@ -178,11 +224,11 @@ class HomePage extends ConsumerWidget {
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
-              error:
-                  (error, stackTrace) => Center(child: Text('Error: $error')),
+              error: (error, stackTrace) =>
+                  Center(child: Text('Error: $error')),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
