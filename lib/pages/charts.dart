@@ -5,6 +5,10 @@ import 'package:intl/intl.dart';
 
 import '../providers/events_provider.dart';
 
+const leftTitleSize = 50.0;
+const rightTitleSize = 20.0;
+const barRodWidth = 16.0;
+
 class ChartsPage extends ConsumerWidget {
   const ChartsPage({super.key});
 
@@ -13,16 +17,20 @@ class ChartsPage extends ConsumerWidget {
     final eventsAsync = ref.watch(eventsProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Charts'),
-      ),
+      appBar: AppBar(title: const Text('Charts')),
       body: eventsAsync.when(
         data: (events) {
           final dailyData = <DateTime, Map<String, dynamic>>{};
 
           for (var event in events) {
-            final eventDate = DateTime.fromMillisecondsSinceEpoch(event.timestamp);
-            final day = DateTime(eventDate.year, eventDate.month, eventDate.day);
+            final eventDate = DateTime.fromMillisecondsSinceEpoch(
+              event.timestamp,
+            );
+            final day = DateTime(
+              eventDate.year,
+              eventDate.month,
+              eventDate.day,
+            );
 
             dailyData.putIfAbsent(day, () => {'caffeine': 0.0});
 
@@ -77,7 +85,7 @@ class ChartsPage extends ConsumerWidget {
                 spots: spots,
                 isCurved: true,
                 color: symptomColors[symptom],
-                barWidth: 2,
+                barWidth: 4,
                 isStrokeCapRound: true,
                 dotData: const FlDotData(show: false),
                 belowBarData: BarAreaData(show: false),
@@ -95,8 +103,10 @@ class ChartsPage extends ConsumerWidget {
                   BarChartRodData(
                     toY: caffeineTotal,
                     color: Colors.grey.shade300,
-                    width: 16,
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                    width: barRodWidth,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(4),
+                    ),
                   ),
                 ],
               ),
@@ -110,67 +120,90 @@ class ChartsPage extends ConsumerWidget {
                 Expanded(
                   child: Stack(
                     children: [
-                      BarChart(
-                        BarChartData(
-                          barGroups: barGroups,
-                          maxY: maxCaffeine,
-                          titlesData: FlTitlesData(
-                            leftTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: true,
-                                reservedSize: 50,
-                                getTitlesWidget: (value, meta) {
-                                  return Text('${value.toInt()} mg');
-                                },
+                      Padding(
+                        padding: const EdgeInsets.only(right: rightTitleSize),
+                        child: BarChart(
+                          BarChartData(
+                            alignment: BarChartAlignment.spaceBetween,
+                            barGroups: barGroups,
+                            maxY: maxCaffeine,
+                            titlesData: FlTitlesData(
+                              leftTitles: AxisTitles(
+                                sideTitles: SideTitles(
+                                  showTitles: true,
+                                  reservedSize: leftTitleSize,
+                                  getTitlesWidget: (value, meta) {
+                                    return Text('${value.toInt()} mg');
+                                  },
+                                ),
+                              ),
+                              rightTitles: const AxisTitles(
+                                sideTitles: SideTitles(showTitles: false),
+                              ),
+                              topTitles: const AxisTitles(
+                                sideTitles: SideTitles(showTitles: false),
+                              ),
+                              bottomTitles: AxisTitles(
+                                sideTitles: SideTitles(
+                                  showTitles: true,
+                                  reservedSize: 24,
+                                  getTitlesWidget: (value, meta) {
+                                    final index = value.toInt();
+                                    if (index >= 0 &&
+                                        index < sortedDays.length) {
+                                      return Text(
+                                        DateFormat.E().format(
+                                          sortedDays[index],
+                                        ),
+                                      );
+                                    }
+                                    return const Text('');
+                                  },
+                                ),
                               ),
                             ),
-                            rightTitles: const AxisTitles(
-                                sideTitles: SideTitles(showTitles: false)),
-                            topTitles: const AxisTitles(
-                                sideTitles: SideTitles(showTitles: false)),
-                            bottomTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: true,
-                                reservedSize: 24,
-                                getTitlesWidget: (value, meta) {
-                                  final index = value.toInt();
-                                  if (index >= 0 && index < sortedDays.length) {
-                                    return Text(DateFormat.E().format(sortedDays[index]));
-                                  }
-                                  return const Text('');
-                                },
-                              ),
-                            ),
+                            gridData: const FlGridData(show: false),
+                            borderData: FlBorderData(show: false),
                           ),
-                          gridData: const FlGridData(show: false),
-                          borderData: FlBorderData(show: false),
                         ),
                       ),
-                      LineChart(
-                        LineChartData(
-                          lineBarsData: lineBarsData,
-                          minY: 0,
-                          maxY: 5,
-                          titlesData: FlTitlesData(
-                            leftTitles: const AxisTitles(
-                                sideTitles: SideTitles(showTitles: false)),
-                            rightTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: true,
-                                reservedSize: 40,
-                                interval: 1,
-                                getTitlesWidget: (value, meta) {
-                                  return Text(value.toInt().toString());
-                                },
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          left: leftTitleSize + barRodWidth / 2,
+                          right: barRodWidth / 2,
+                        ),
+                        child: LineChart(
+                          LineChartData(
+                            lineBarsData: lineBarsData,
+                            minY: 0,
+                            maxY: 5,
+                            titlesData: FlTitlesData(
+                              leftTitles: const AxisTitles(
+                                sideTitles: SideTitles(showTitles: false),
+                              ),
+                              rightTitles: AxisTitles(
+                                sideTitles: SideTitles(
+                                  showTitles: true,
+                                  reservedSize: rightTitleSize,
+                                  interval: 1,
+                                  getTitlesWidget: (value, meta) {
+                                    return Text(
+                                      value.toInt().toString(),
+                                      textAlign: TextAlign.right,
+                                    );
+                                  },
+                                ),
+                              ),
+                              topTitles: const AxisTitles(
+                                sideTitles: SideTitles(showTitles: false),
+                              ),
+                              bottomTitles: const AxisTitles(
+                                sideTitles: SideTitles(showTitles: false),
                               ),
                             ),
-                            topTitles: const AxisTitles(
-                                sideTitles: SideTitles(showTitles: false)),
-                            bottomTitles: const AxisTitles(
-                                sideTitles: SideTitles(showTitles: false)),
+                            gridData: const FlGridData(show: false),
+                            borderData: FlBorderData(show: false),
                           ),
-                          gridData: const FlGridData(show: false),
-                          borderData: FlBorderData(show: false),
                         ),
                       ),
                     ],
@@ -179,21 +212,22 @@ class ChartsPage extends ConsumerWidget {
                 const SizedBox(height: 20),
                 Wrap(
                   spacing: 10,
-                  children: symptomColors.entries.map((entry) {
-                    return Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 10,
-                          height: 10,
-                          color: entry.value,
-                        ),
-                        const SizedBox(width: 5),
-                        Text(entry.key),
-                      ],
-                    );
-                  }).toList(),
-                )
+                  children:
+                      symptomColors.entries.map((entry) {
+                        return Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 10,
+                              height: 10,
+                              color: entry.value,
+                            ),
+                            const SizedBox(width: 5),
+                            Text(entry.key),
+                          ],
+                        );
+                      }).toList(),
+                ),
               ],
             ),
           );
