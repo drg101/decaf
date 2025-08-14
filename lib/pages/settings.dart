@@ -1,4 +1,5 @@
 import 'package:decaf/pages/manage_caffeine_options.dart';
+import 'package:decaf/pages/manage_symptoms_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:decaf/providers/events_provider.dart';
@@ -52,6 +53,17 @@ class SettingsPage extends ConsumerWidget {
               Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (context) => const ManageCaffeineOptionsPage(),
+                ),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.medical_services),
+            title: const Text('Manage Symptoms'),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const ManageSymptomsPage(),
                 ),
               );
             },
