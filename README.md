@@ -1,3 +1,3 @@
-# decaf
+# Decaf
 
 Quit caffeine, with data.
