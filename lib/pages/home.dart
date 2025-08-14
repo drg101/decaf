@@ -194,7 +194,6 @@ class HomePage extends ConsumerWidget {
                       lowText: "Clear Minded",
                       highEmoji: "🌫️",
                       highText: "Super Foggy",
-                      eventType: EventType.brainFog,
                     ),
                     const InputSlider(
                       label: "Headache",
@@ -202,7 +201,6 @@ class HomePage extends ConsumerWidget {
                       lowText: "No Headache",
                       highEmoji: "🤕",
                       highText: "Severe Headache",
-                      eventType: EventType.headache,
                     ),
                     const InputSlider(
                       label: "Anxiety",
@@ -210,7 +208,6 @@ class HomePage extends ConsumerWidget {
                       lowText: "Calm",
                       highEmoji: "😥",
                       highText: "Anxious",
-                      eventType: EventType.anxiety,
                     ),
                     const InputSlider(
                       label: "Fatigue",
@@ -218,7 +215,6 @@ class HomePage extends ConsumerWidget {
                       lowText: "Energized",
                       highEmoji: "😴",
                       highText: "Exhausted",
-                      eventType: EventType.fatigue,
                     ),
                   ],
                 );

@@ -4,7 +4,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart';
 import 'package:uuid/uuid.dart';
 
-enum EventType { caffeine, headache, brainFog, anxiety, fatigue }
+enum EventType { caffeine, symptom }
 
 class Event {
   Event({

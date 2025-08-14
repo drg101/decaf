@@ -1,3 +1,4 @@
+import 'package:decaf/pages/manage_caffeine_options.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:decaf/providers/events_provider.dart';
@@ -8,9 +9,7 @@ class SettingsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-      ),
+      appBar: AppBar(title: const Text('Settings')),
       body: ListView(
         children: [
           ListTile(
@@ -22,7 +21,9 @@ class SettingsPage extends ConsumerWidget {
                 builder: (BuildContext context) {
                   return AlertDialog(
                     title: const Text('Confirm Reset'),
-                    content: const Text('Are you sure you want to reset your account? This action cannot be undone.'),
+                    content: const Text(
+                      'Are you sure you want to reset your account? This action cannot be undone.',
+                    ),
                     actions: <Widget>[
                       TextButton(
                         child: const Text('Cancel'),
@@ -41,6 +42,17 @@ class SettingsPage extends ConsumerWidget {
                     ],
                   );
                 },
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.coffee),
+            title: const Text('Manage Caffeine Options'),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const ManageCaffeineOptionsPage(),
+                ),
               );
             },
           ),

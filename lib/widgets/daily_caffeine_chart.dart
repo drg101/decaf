@@ -21,14 +21,18 @@ class DailyCaffeineChart extends ConsumerWidget {
 
         final dailyTotals = <DateTime, double>{};
         for (var event in caffeineEvents) {
-          final eventDate = DateTime.fromMillisecondsSinceEpoch(event.timestamp);
-          final day =
-              DateTime(eventDate.year, eventDate.month, eventDate.day);
-          dailyTotals.update(day, (value) => value + event.value,
-              ifAbsent: () => event.value);
+          final eventDate = DateTime.fromMillisecondsSinceEpoch(
+            event.timestamp,
+          );
+          final day = DateTime(eventDate.year, eventDate.month, eventDate.day);
+          dailyTotals.update(
+            day,
+            (value) => value + event.value,
+            ifAbsent: () => event.value,
+          );
         }
 
-        if (dailyTotals.isEmpty) {
+        if (caffeineEvents.isEmpty) {
           return const SizedBox(
             height: 150,
             child: Center(
@@ -38,12 +42,27 @@ class DailyCaffeineChart extends ConsumerWidget {
         }
 
         final sortedDays = dailyTotals.keys.toList()..sort();
+        final firstDay = sortedDays.first;
+        final lastDay = sortedDays.last;
+
+        final allDays = <DateTime>[];
+        for (int i = 0; i <= lastDay.difference(firstDay).inDays; i++) {
+          allDays.add(firstDay.add(Duration(days: i)));
+        }
+
+        final fullDailyTotals = <DateTime, double>{};
+        for (var day in allDays) {
+          fullDailyTotals[day] = dailyTotals[day] ?? 0.0;
+        }
+
+        final fullSortedDays = fullDailyTotals.keys.toList()..sort();
 
         final barGroups = <BarChartGroupData>[];
-        for (var i = 0; i < sortedDays.length; i++) {
-          final day = sortedDays[i];
-          final total = dailyTotals[day]!;
-          final isSelected = day.year == selectedDate.year &&
+        for (var i = 0; i < fullSortedDays.length; i++) {
+          final day = fullSortedDays[i];
+          final total = fullDailyTotals[day]!;
+          final isSelected =
+              day.year == selectedDate.year &&
               day.month == selectedDate.month &&
               day.day == selectedDate.day;
 
@@ -53,11 +72,14 @@ class DailyCaffeineChart extends ConsumerWidget {
               barRods: [
                 BarChartRodData(
                   toY: total,
-                  color: isSelected
-                      ? Theme.of(context).colorScheme.primary
-                      : Colors.grey.shade300,
+                  color:
+                      isSelected
+                          ? Theme.of(context).colorScheme.primary
+                          : Colors.grey.shade300,
                   width: 12,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(4),
+                  ),
                 ),
               ],
             ),
@@ -72,12 +94,15 @@ class DailyCaffeineChart extends ConsumerWidget {
               BarChartData(
                 barGroups: barGroups,
                 titlesData: FlTitlesData(
-                  leftTitles:
-                      const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  topTitles:
-                      const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  rightTitles:
-                      const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  leftTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  topTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  rightTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
@@ -103,7 +128,7 @@ class DailyCaffeineChart extends ConsumerWidget {
                         event is FlTapUpEvent) {
                       final index = response.spot!.touchedBarGroupIndex;
                       ref.read(selectedDateProvider.notifier).state =
-                          sortedDays[index];
+                          fullSortedDays[index];
                     }
                   },
                 ),
@@ -112,10 +137,14 @@ class DailyCaffeineChart extends ConsumerWidget {
           ),
         );
       },
-      loading: () => const SizedBox(
-          height: 150, child: Center(child: CircularProgressIndicator())),
-      error: (err, stack) =>
-          SizedBox(height: 150, child: Center(child: Text('Error: $err'))),
+      loading:
+          () => const SizedBox(
+            height: 150,
+            child: Center(child: CircularProgressIndicator()),
+          ),
+      error:
+          (err, stack) =>
+              SizedBox(height: 150, child: Center(child: Text('Error: $err'))),
     );
   }
 }

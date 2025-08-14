@@ -9,7 +9,6 @@ class InputSlider extends ConsumerStatefulWidget {
   final String lowText;
   final String highEmoji;
   final String highText;
-  final EventType eventType;
 
   const InputSlider({
     super.key,
@@ -18,7 +17,6 @@ class InputSlider extends ConsumerStatefulWidget {
     required this.lowText,
     required this.highEmoji,
     required this.highText,
-    required this.eventType,
   });
 
   @override
@@ -37,13 +35,22 @@ class _InputSliderState extends ConsumerState<InputSlider> {
       data: (events) {
         final relevantEvent = events.firstWhere(
           (event) {
-            final eventDate = DateTime.fromMillisecondsSinceEpoch(event.timestamp);
-            return event.type == widget.eventType &&
-                   eventDate.year == selectedDate.year &&
-                   eventDate.month == selectedDate.month &&
-                   eventDate.day == selectedDate.day;
+            final eventDate = DateTime.fromMillisecondsSinceEpoch(
+              event.timestamp,
+            );
+            return event.name == widget.label &&
+                eventDate.year == selectedDate.year &&
+                eventDate.month == selectedDate.month &&
+                eventDate.day == selectedDate.day;
           },
-          orElse: () => Event(id: '', type: widget.eventType, name: '', value: 0, timestamp: 0),
+          orElse:
+              () => Event(
+                id: '',
+                type: EventType.symptom,
+                name: widget.label,
+                value: 0,
+                timestamp: 0,
+              ),
         );
 
         _currentSliderValue = relevantEvent.value;
@@ -72,14 +79,14 @@ class _InputSliderState extends ConsumerState<InputSlider> {
                                 hasSavedValue
                                     ? null
                                     : const RoundSliderThumbShape(
-                                        enabledThumbRadius: 0.0,
-                                      ),
+                                      enabledThumbRadius: 0.0,
+                                    ),
                             overlayShape:
                                 hasSavedValue
                                     ? null
                                     : const RoundSliderOverlayShape(
-                                        overlayRadius: 0.0,
-                                      ),
+                                      overlayRadius: 0.0,
+                                    ),
                           ),
                           child: Slider(
                             value: _currentSliderValue,
@@ -91,7 +98,9 @@ class _InputSliderState extends ConsumerState<InputSlider> {
                               setState(() {
                                 _currentSliderValue = value;
                               });
-                              final selectedDate = ref.read(selectedDateProvider);
+                              final selectedDate = ref.read(
+                                selectedDateProvider,
+                              );
                               final now = DateTime.now();
                               final timestamp = DateTime(
                                 selectedDate.year,
@@ -102,31 +111,23 @@ class _InputSliderState extends ConsumerState<InputSlider> {
                                 now.second,
                               );
 
-                              final events = ref.read(eventsProvider).value ?? [];
-                              final existingEvent = events.firstWhere(
-                                (event) {
-                                  final eventDate = DateTime.fromMillisecondsSinceEpoch(event.timestamp);
-                                  return event.type == widget.eventType &&
-                                         eventDate.year == selectedDate.year &&
-                                         eventDate.month == selectedDate.month &&
-                                         eventDate.day == selectedDate.day;
-                                },
-                                orElse: () => Event(id: '', type: widget.eventType, name: '', value: 0, timestamp: 0),
-                              );
-
-                              if (existingEvent.id.isNotEmpty) {
-                                ref.read(eventsProvider.notifier).updateEvent(
+                              if (relevantEvent.id.isNotEmpty) {
+                                ref
+                                    .read(eventsProvider.notifier)
+                                    .updateEvent(
                                       Event(
-                                        id: existingEvent.id,
-                                        type: widget.eventType,
-                                        name: existingEvent.name,
+                                        id: relevantEvent.id,
+                                        type: EventType.symptom,
+                                        name: relevantEvent.name,
                                         value: value,
-                                        timestamp: existingEvent.timestamp,
+                                        timestamp: relevantEvent.timestamp,
                                       ),
                                     );
                               } else {
-                                ref.read(eventsProvider.notifier).addEvent(
-                                      widget.eventType,
+                                ref
+                                    .read(eventsProvider.notifier)
+                                    .addEvent(
+                                      EventType.symptom,
                                       widget.label,
                                       value,
                                       timestamp,
@@ -138,7 +139,9 @@ class _InputSliderState extends ConsumerState<InputSlider> {
                             overlayColor:
                                 hasSavedValue
                                     ? null
-                                    : MaterialStateProperty.all(Colors.transparent),
+                                    : MaterialStateProperty.all(
+                                      Colors.transparent,
+                                    ),
                           ),
                         ),
                       ),
@@ -158,8 +161,12 @@ class _InputSliderState extends ConsumerState<InputSlider> {
           ),
         );
       },
-      loading: () => const CircularProgressIndicator(), // Or a suitable loading indicator
-      error: (error, stack) => Text('Error: $error'), // Or a suitable error display
+      loading:
+          () =>
+              const CircularProgressIndicator(), // Or a suitable loading indicator
+      error:
+          (error, stack) =>
+              Text('Error: $error'), // Or a suitable error display
     );
   }
 }
