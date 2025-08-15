@@ -1,3 +1,4 @@
+import 'package:decaf/constants/colors.dart';
 import 'package:decaf/pages/charts.dart';
 import 'package:decaf/pages/home.dart';
 import 'package:decaf/widgets/add_caffeine_modal.dart';
@@ -17,7 +18,21 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Bottom Navigation Demo',
-      theme: ThemeData(primarySwatch: Colors.blue),
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppColors.caffeine,
+          brightness: Brightness.light,
+        ),
+        useMaterial3: true,
+      ),
+      darkTheme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppColors.caffeine,
+          brightness: Brightness.dark,
+        ),
+        useMaterial3: true,
+      ),
+      themeMode: ThemeMode.system,
       home: const MainScreen(),
     );
   }

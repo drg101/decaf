@@ -39,7 +39,7 @@ class _SymptomIntensityRecorderState extends State<SymptomIntensityRecorder> {
   }
 
   Color? _getColorForIntensity(int index) {
-    if (index >= _intensity) {
+    if (index > _intensity || _intensity < 0) {
       return Colors.grey[500];
     }
 
@@ -76,12 +76,12 @@ class _SymptomIntensityRecorderState extends State<SymptomIntensityRecorder> {
               return GestureDetector(
                 onTap: () {
                   setState(() {
-                    if (_intensity == index + 1) {
-                      _intensity = 0;
+                    if (_intensity == index) {
+                      _intensity = -1; // Use -1 to indicate no selection
                     } else {
-                      _intensity = index + 1;
+                      _intensity = index;
                     }
-                    widget.onIntensityChanged(_intensity);
+                    widget.onIntensityChanged(_intensity < 0 ? 0 : _intensity);
                   });
                 },
                 child: Container(

@@ -1,6 +1,7 @@
 import 'package:decaf/constants/colors.dart';
 import 'package:decaf/main.dart';
 import 'package:decaf/pages/settings.dart';
+import 'package:decaf/providers/chart_visibility_provider.dart';
 import 'package:decaf/providers/date_provider.dart';
 import 'package:decaf/providers/events_provider.dart';
 import 'package:decaf/widgets/daily_caffeine_chart.dart';
@@ -145,31 +146,133 @@ class HomePage extends ConsumerWidget {
             ),
             const DailyCaffeineChart(),
             eventsAsync.when(
-              data: (events) {
-                final caffeineEvents =
-                    events.where((event) {
-                      final eventDate = DateTime.fromMillisecondsSinceEpoch(
-                        event.timestamp,
-                      );
-                      return event.type == EventType.caffeine &&
+              data: (events) => symptomsAsync.when(
+                data: (symptoms) {
+                  final caffeineEvents = events.where((event) {
+                    final eventDate = DateTime.fromMillisecondsSinceEpoch(event.timestamp);
+                    return event.type == EventType.caffeine &&
+                        eventDate.year == selectedDate.year &&
+                        eventDate.month == selectedDate.month &&
+                        eventDate.day == selectedDate.day;
+                  }).toList();
+
+                  final totalCaffeine = caffeineEvents.fold<double>(
+                    0,
+                    (previousValue, element) => previousValue + element.value,
+                  );
+
+                  // Calculate daily symptom scores
+                  final positiveSymptoms = symptoms.where((s) => s.connotation == SymptomConnotation.positive).toList();
+                  final negativeSymptoms = symptoms.where((s) => s.connotation == SymptomConnotation.negative).toList();
+                  
+                  double positiveSum = 0;
+                  int positiveCount = 0;
+                  double negativeSum = 0;
+                  int negativeCount = 0;
+                  
+                  for (final symptom in positiveSymptoms) {
+                    final symptomEvents = events.where((event) {
+                      final eventDate = DateTime.fromMillisecondsSinceEpoch(event.timestamp);
+                      return event.type == EventType.symptom &&
+                          event.name == symptom.name &&
                           eventDate.year == selectedDate.year &&
                           eventDate.month == selectedDate.month &&
                           eventDate.day == selectedDate.day;
                     }).toList();
+                    
+                    if (symptomEvents.isNotEmpty && symptomEvents.first.value > 0) {
+                      positiveSum += symptomEvents.first.value;
+                      positiveCount++;
+                    }
+                  }
+                  
+                  for (final symptom in negativeSymptoms) {
+                    final symptomEvents = events.where((event) {
+                      final eventDate = DateTime.fromMillisecondsSinceEpoch(event.timestamp);
+                      return event.type == EventType.symptom &&
+                          event.name == symptom.name &&
+                          eventDate.year == selectedDate.year &&
+                          eventDate.month == selectedDate.month &&
+                          eventDate.day == selectedDate.day;
+                    }).toList();
+                    
+                    if (symptomEvents.isNotEmpty && symptomEvents.first.value > 0) {
+                      negativeSum += symptomEvents.first.value;
+                      negativeCount++;
+                    }
+                  }
+                  
+                  final positiveScore = positiveCount > 0 ? positiveSum / positiveCount : 0.0;
+                  final negativeScore = negativeCount > 0 ? negativeSum / negativeCount : 0.0;
 
-                final totalCaffeine = caffeineEvents.fold<double>(
-                  0,
-                  (previousValue, element) => previousValue + element.value,
-                );
-
-                return Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    'Total: ${totalCaffeine.toStringAsFixed(0)} mg',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                );
-              },
+                  return Consumer(
+                    builder: (context, ref, child) {
+                      final visibility = ref.watch(chartVisibilityProvider);
+                      
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                        child: Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: _buildClickableStatsItem(
+                                    context,
+                                    'Caffeine',
+                                    '${totalCaffeine.toStringAsFixed(0)} mg',
+                                    Theme.of(context).colorScheme.primary,
+                                    visibility.showCaffeine,
+                                    () {
+                                      ref.read(chartVisibilityProvider.notifier).toggleCaffeine();
+                                    },
+                                  ),
+                                ),
+                                Container(
+                                  width: 1,
+                                  height: 60,
+                                  color: Colors.grey[300],
+                                ),
+                                Expanded(
+                                  child: _buildClickableStatsItem(
+                                    context,
+                                    'Positives',
+                                    positiveCount > 0 ? positiveScore.toStringAsFixed(1) : '—',
+                                    AppColors.positiveEffect,
+                                    visibility.showPositives,
+                                    () {
+                                      ref.read(chartVisibilityProvider.notifier).togglePositives();
+                                    },
+                                  ),
+                                ),
+                                Container(
+                                  width: 1,
+                                  height: 60,
+                                  color: Colors.grey[300],
+                                ),
+                                Expanded(
+                                  child: _buildClickableStatsItem(
+                                    context,
+                                    'Negatives',
+                                    negativeCount > 0 ? negativeScore.toStringAsFixed(1) : '—',
+                                    AppColors.negativeEffect,
+                                    visibility.showNegatives,
+                                    () {
+                                      ref.read(chartVisibilityProvider.notifier).toggleNegatives();
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+                loading: () => const SizedBox.shrink(),
+                error: (error, stackTrace) => const SizedBox.shrink(),
+              ),
               loading: () => const SizedBox.shrink(),
               error: (error, stackTrace) => const SizedBox.shrink(),
             ),
@@ -272,6 +375,76 @@ class HomePage extends ConsumerWidget {
               loading: () => const Center(child: CircularProgressIndicator()),
               error:
                   (error, stackTrace) => Center(child: Text('Error: $error')),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatsItem(BuildContext context, String label, String value, Color color) {
+    return Column(
+      children: [
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Colors.grey[600],
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            color: color,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildClickableStatsItem(
+    BuildContext context, 
+    String label, 
+    String value, 
+    Color color, 
+    bool isVisible, 
+    VoidCallback onTap
+  ) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 8.0),
+        padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
+        decoration: BoxDecoration(
+          color: isVisible 
+            ? color.withValues(alpha: 0.05) 
+            : Colors.grey.withValues(alpha: 0.03),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isVisible 
+              ? color.withValues(alpha: 0.3) 
+              : Colors.grey.withValues(alpha: 0.2),
+            width: 1,
+          ),
+        ),
+        child: Column(
+          children: [
+            Text(
+              label,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: isVisible ? Colors.grey[600] : Colors.grey[400],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: isVisible ? color : Colors.grey[400],
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ],
         ),
