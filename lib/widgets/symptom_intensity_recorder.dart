@@ -37,6 +37,18 @@ class _SymptomIntensityRecorderState extends State<SymptomIntensityRecorder> {
     }
   }
 
+  Color? _getColorForIntensity(int index) {
+    if (index >= _intensity) {
+      return Colors.grey[300];
+    }
+
+    return Color.lerp(
+      const Color.fromARGB(255, 0, 140, 255),
+      const Color.fromARGB(255, 255, 95, 77),
+      index / 4,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -53,18 +65,20 @@ class _SymptomIntensityRecorderState extends State<SymptomIntensityRecorder> {
               return GestureDetector(
                 onTap: () {
                   setState(() {
-                    _intensity = index;
+                    if (_intensity == index + 1) {
+                      _intensity = 0;
+                    } else {
+                      _intensity = index + 1;
+                    }
+                    widget.onIntensityChanged(_intensity);
                   });
-                  widget.onIntensityChanged(index);
                 },
                 child: Container(
                   width: 30,
                   height: 30,
                   margin: const EdgeInsets.symmetric(horizontal: 4),
                   decoration: BoxDecoration(
-                    color: index <= _intensity
-                        ? Theme.of(context).primaryColor
-                        : Colors.grey[300],
+                    color: _getColorForIntensity(index),
                     border: Border.all(
                       color: Colors.grey,
                     ),
