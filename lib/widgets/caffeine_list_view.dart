@@ -25,9 +25,9 @@ class CaffeineListView extends ConsumerWidget {
       itemBuilder: (context, index) {
         final event = caffeineEvents[index];
         return Card(
-          elevation: 2,
+          elevation: 1,
           margin: const EdgeInsets.symmetric(
-            horizontal: 8,
+            horizontal: 4,
             vertical: 4,
           ),
           child: ListTile(

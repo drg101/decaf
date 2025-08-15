@@ -1,3 +1,4 @@
+import 'package:decaf/constants/colors.dart';
 import 'package:decaf/providers/symptoms_provider.dart';
 import 'package:flutter/material.dart';
 
@@ -39,14 +40,24 @@ class _SymptomIntensityRecorderState extends State<SymptomIntensityRecorder> {
 
   Color? _getColorForIntensity(int index) {
     if (index >= _intensity) {
-      return Colors.grey[300];
+      return Colors.grey[500];
     }
 
-    return Color.lerp(
-      const Color.fromARGB(255, 0, 140, 255),
-      const Color.fromARGB(255, 255, 95, 77),
-      index / 4,
-    );
+    final isPositive = widget.symptom.connotation == SymptomConnotation.positive;
+    
+    if (isPositive) {
+      return Color.lerp(
+        AppColors.positiveEffect.withOpacity(0.3),
+        AppColors.positiveEffect,
+        (index + 1) / 5,
+      );
+    } else {
+      return Color.lerp(
+        AppColors.negativeEffect.withOpacity(0.3),
+        AppColors.negativeEffect,
+        (index + 1) / 5,
+      );
+    }
   }
 
   @override
@@ -79,10 +90,18 @@ class _SymptomIntensityRecorderState extends State<SymptomIntensityRecorder> {
                   margin: const EdgeInsets.symmetric(horizontal: 4),
                   decoration: BoxDecoration(
                     color: _getColorForIntensity(index),
-                    border: Border.all(
-                      color: Colors.grey,
-                    ),
+                    border: index >= _intensity ? Border.all(color: Colors.white, width: 1) : null,
                     borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Center(
+                    child: Text(
+                      index.toString(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
                   ),
                 ),
               );

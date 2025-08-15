@@ -1,3 +1,4 @@
+import 'package:decaf/constants/colors.dart';
 import 'package:decaf/providers/symptoms_provider.dart';
 import 'package:decaf/widgets/add_or_edit_symptom_dialog.dart';
 import 'package:flutter/material.dart';
@@ -20,35 +21,28 @@ class ManageSymptomsPage extends ConsumerWidget {
           final negativeSymptoms = symptoms.where((s) => s.connotation == SymptomConnotation.negative).toList();
           
           return SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (positiveSymptoms.isNotEmpty) ...[
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text(
-                      'Positive Effects',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: Colors.green,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                if (positiveSymptoms.isNotEmpty)
+                  _buildSymptomCard(
+                    context,
+                    ref,
+                    'Positive Effects',
+                    positiveSymptoms,
+                    AppColors.positiveEffectLight,
                   ),
-                  ...positiveSymptoms.map((symptom) => _buildSymptomTile(context, ref, symptom)),
-                ],
-                if (negativeSymptoms.isNotEmpty) ...[
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text(
-                      'Negative Effects',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: Colors.red,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                if (positiveSymptoms.isNotEmpty && negativeSymptoms.isNotEmpty)
+                  const SizedBox(height: 16),
+                if (negativeSymptoms.isNotEmpty)
+                  _buildSymptomCard(
+                    context,
+                    ref,
+                    'Negative Effects',
+                    negativeSymptoms,
+                    AppColors.negativeEffectLight,
                   ),
-                  ...negativeSymptoms.map((symptom) => _buildSymptomTile(context, ref, symptom)),
-                ],
                 if (symptoms.isEmpty)
                   const Center(
                     child: Padding(
@@ -75,8 +69,37 @@ class ManageSymptomsPage extends ConsumerWidget {
     );
   }
 
+  Widget _buildSymptomCard(
+    BuildContext context,
+    WidgetRef ref,
+    String title,
+    List<Symptom> symptoms,
+    Color backgroundColor,
+  ) {
+    return Card(
+      color: backgroundColor,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            ...symptoms.map((symptom) => _buildSymptomTile(context, ref, symptom)),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildSymptomTile(BuildContext context, WidgetRef ref, Symptom symptom) {
     return ListTile(
+      contentPadding: EdgeInsets.zero,
       leading: Text(symptom.emoji, style: const TextStyle(fontSize: 24)),
       title: Text(symptom.name),
       trailing: Row(

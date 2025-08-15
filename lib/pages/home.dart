@@ -1,3 +1,4 @@
+import 'package:decaf/constants/colors.dart';
 import 'package:decaf/main.dart';
 import 'package:decaf/pages/settings.dart';
 import 'package:decaf/providers/date_provider.dart';
@@ -115,8 +116,9 @@ class HomePage extends ConsumerWidget {
                     child: IconButton(
                       icon: const Icon(Icons.chevron_right),
                       onPressed: () {
-                        ref.read(selectedDateProvider.notifier).state =
-                            selectedDate.add(const Duration(days: 1));
+                        ref
+                            .read(selectedDateProvider.notifier)
+                            .state = selectedDate.add(const Duration(days: 1));
                       },
                     ),
                   ),
@@ -137,27 +139,28 @@ class HomePage extends ConsumerWidget {
                       ref.read(pageIndexProvider.notifier).state = 1;
                     },
                     child: const Text('See more'),
-                  )
+                  ),
                 ],
               ),
             ),
             const DailyCaffeineChart(),
             eventsAsync.when(
               data: (events) {
-                final caffeineEvents = events.where((event) {
-                  final eventDate = DateTime.fromMillisecondsSinceEpoch(
-                    event.timestamp,
-                  );
-                  return event.type == EventType.caffeine &&
-                      eventDate.year == selectedDate.year &&
-                      eventDate.month == selectedDate.month &&
-                      eventDate.day == selectedDate.day;
-                }).toList();
+                final caffeineEvents =
+                    events.where((event) {
+                      final eventDate = DateTime.fromMillisecondsSinceEpoch(
+                        event.timestamp,
+                      );
+                      return event.type == EventType.caffeine &&
+                          eventDate.year == selectedDate.year &&
+                          eventDate.month == selectedDate.month &&
+                          eventDate.day == selectedDate.day;
+                    }).toList();
 
                 final totalCaffeine = caffeineEvents.fold<double>(
-                    0,
-                    (previousValue, element) =>
-                        previousValue + element.value);
+                  0,
+                  (previousValue, element) => previousValue + element.value,
+                );
 
                 return Padding(
                   padding: const EdgeInsets.all(8.0),
@@ -172,15 +175,16 @@ class HomePage extends ConsumerWidget {
             ),
             eventsAsync.when(
               data: (events) {
-                final caffeineEvents = events.where((event) {
-                  final eventDate = DateTime.fromMillisecondsSinceEpoch(
-                    event.timestamp,
-                  );
-                  return event.type == EventType.caffeine &&
-                      eventDate.year == selectedDate.year &&
-                      eventDate.month == selectedDate.month &&
-                      eventDate.day == selectedDate.day;
-                }).toList();
+                final caffeineEvents =
+                    events.where((event) {
+                      final eventDate = DateTime.fromMillisecondsSinceEpoch(
+                        event.timestamp,
+                      );
+                      return event.type == EventType.caffeine &&
+                          eventDate.year == selectedDate.year &&
+                          eventDate.month == selectedDate.month &&
+                          eventDate.day == selectedDate.day;
+                    }).toList();
 
                 return Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -194,57 +198,68 @@ class HomePage extends ConsumerWidget {
                       ),
                       symptomsAsync.when(
                         data: (symptoms) {
+                          final positiveSymptoms =
+                              symptoms
+                                  .where(
+                                    (s) =>
+                                        s.connotation ==
+                                        SymptomConnotation.positive,
+                                  )
+                                  .toList();
+                          final negativeSymptoms =
+                              symptoms
+                                  .where(
+                                    (s) =>
+                                        s.connotation ==
+                                        SymptomConnotation.negative,
+                                  )
+                                  .toList();
+
                           return Column(
-                            children: symptoms.map((symptom) {
-                              final symptomEvents = events.where((event) {
-                                final eventDate =
-                                    DateTime.fromMillisecondsSinceEpoch(
-                                        event.timestamp);
-                                return event.type == EventType.symptom &&
-                                    event.name == symptom.name &&
-                                    eventDate.year == selectedDate.year &&
-                                    eventDate.month == selectedDate.month &&
-                                    eventDate.day == selectedDate.day;
-                              }).toList();
-
-                              final existingEvent = symptomEvents.isNotEmpty
-                                  ? symptomEvents.first
-                                  : null;
-                              final initialIntensity =
-                                  existingEvent?.value.toInt() ?? 0;
-
-                              return SymptomIntensityRecorder(
-                                key: ValueKey(symptom.id),
-                                symptom: symptom,
-                                initialIntensity: initialIntensity,
-                                onIntensityChanged: (intensity) {
-                                  final existingEvent =
-                                      symptomEvents.isNotEmpty
-                                          ? symptomEvents.first
-                                          : null;
-
-                                  if (existingEvent != null) {
-                                    final updatedEvent = Event(
-                                      id: existingEvent.id,
-                                      type: EventType.symptom,
-                                      name: symptom.name,
-                                      value: intensity.toDouble(),
-                                      timestamp: existingEvent.timestamp,
-                                    );
-                                    ref
-                                        .read(eventsProvider.notifier)
-                                        .updateEvent(updatedEvent);
-                                  } else {
-                                    ref.read(eventsProvider.notifier).addEvent(
-                                          EventType.symptom,
-                                          symptom.name,
-                                          intensity.toDouble(),
-                                          selectedDate,
-                                        );
-                                  }
-                                },
-                              );
-                            }).toList(),
+                            children: [
+                              if (symptoms.isNotEmpty) ...[
+                                const SizedBox(height: 24),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8.0,
+                                  ),
+                                  child: Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      'Daily Check-In',
+                                      style:
+                                          Theme.of(
+                                            context,
+                                          ).textTheme.titleLarge,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                              ],
+                              if (positiveSymptoms.isNotEmpty)
+                                _buildSymptomCard(
+                                  context,
+                                  ref,
+                                  'Positives',
+                                  positiveSymptoms,
+                                  events,
+                                  selectedDate,
+                                  AppColors.positiveEffectLight,
+                                ),
+                              if (positiveSymptoms.isNotEmpty &&
+                                  negativeSymptoms.isNotEmpty)
+                                const SizedBox(height: 16),
+                              if (negativeSymptoms.isNotEmpty)
+                                _buildSymptomCard(
+                                  context,
+                                  ref,
+                                  'Negatives',
+                                  negativeSymptoms,
+                                  events,
+                                  selectedDate,
+                                  AppColors.negativeEffectLight,
+                                ),
+                            ],
                           );
                         },
                         loading: () => const SizedBox.shrink(),
@@ -255,9 +270,130 @@ class HomePage extends ConsumerWidget {
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, stackTrace) =>
-                  Center(child: Text('Error: $error')),
+              error:
+                  (error, stackTrace) => Center(child: Text('Error: $error')),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSymptomCard(
+    BuildContext context,
+    WidgetRef ref,
+    String title,
+    List<Symptom> symptoms,
+    List<Event> events,
+    DateTime selectedDate,
+    Color backgroundColor,
+  ) {
+    // Calculate the average score for this group
+    double totalScore = 0;
+    int countWithValues = 0;
+    
+    for (final symptom in symptoms) {
+      final symptomEvents = events.where((event) {
+        final eventDate = DateTime.fromMillisecondsSinceEpoch(event.timestamp);
+        return event.type == EventType.symptom &&
+            event.name == symptom.name &&
+            eventDate.year == selectedDate.year &&
+            eventDate.month == selectedDate.month &&
+            eventDate.day == selectedDate.day;
+      }).toList();
+      
+      if (symptomEvents.isNotEmpty && symptomEvents.first.value > 0) {
+        totalScore += symptomEvents.first.value;
+        countWithValues++;
+      }
+    }
+    
+    final averageScore = countWithValues > 0 ? totalScore / countWithValues : 0.0;
+    final isPositive = symptoms.isNotEmpty && symptoms.first.connotation == SymptomConnotation.positive;
+    final scoreColor = isPositive ? AppColors.positiveEffect : AppColors.negativeEffect;
+
+    return Card(
+      color: backgroundColor,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                if (countWithValues > 0)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: scoreColor.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: scoreColor.withOpacity(0.5)),
+                    ),
+                    child: Text(
+                      '${averageScore.toStringAsFixed(1)} avg',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: scoreColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            ...symptoms.map((symptom) {
+              final symptomEvents =
+                  events.where((event) {
+                    final eventDate = DateTime.fromMillisecondsSinceEpoch(
+                      event.timestamp,
+                    );
+                    return event.type == EventType.symptom &&
+                        event.name == symptom.name &&
+                        eventDate.year == selectedDate.year &&
+                        eventDate.month == selectedDate.month &&
+                        eventDate.day == selectedDate.day;
+                  }).toList();
+
+              final existingEvent =
+                  symptomEvents.isNotEmpty ? symptomEvents.first : null;
+              final initialIntensity = existingEvent?.value.toInt() ?? 0;
+
+              return SymptomIntensityRecorder(
+                key: ValueKey(symptom.id),
+                symptom: symptom,
+                initialIntensity: initialIntensity,
+                onIntensityChanged: (intensity) {
+                  final existingEvent =
+                      symptomEvents.isNotEmpty ? symptomEvents.first : null;
+
+                  if (existingEvent != null) {
+                    final updatedEvent = Event(
+                      id: existingEvent.id,
+                      type: EventType.symptom,
+                      name: symptom.name,
+                      value: intensity.toDouble(),
+                      timestamp: existingEvent.timestamp,
+                    );
+                    ref.read(eventsProvider.notifier).updateEvent(updatedEvent);
+                  } else {
+                    ref
+                        .read(eventsProvider.notifier)
+                        .addEvent(
+                          EventType.symptom,
+                          symptom.name,
+                          intensity.toDouble(),
+                          selectedDate,
+                        );
+                  }
+                },
+              );
+            }),
           ],
         ),
       ),
