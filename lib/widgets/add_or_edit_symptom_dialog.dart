@@ -15,12 +15,14 @@ class _AddOrEditSymptomDialogState extends ConsumerState<AddOrEditSymptomDialog>
   final _formKey = GlobalKey<FormState>();
   late String _name;
   late String _emoji;
+  late SymptomConnotation _connotation;
 
   @override
   void initState() {
     super.initState();
     _name = widget.symptom?.name ?? '';
     _emoji = widget.symptom?.emoji ?? '';
+    _connotation = widget.symptom?.connotation ?? SymptomConnotation.negative;
   }
 
   @override
@@ -54,6 +56,22 @@ class _AddOrEditSymptomDialogState extends ConsumerState<AddOrEditSymptomDialog>
               },
               onSaved: (value) => _emoji = value!,
             ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<SymptomConnotation>(
+              value: _connotation,
+              decoration: const InputDecoration(labelText: 'Type'),
+              items: SymptomConnotation.values.map((connotation) {
+                return DropdownMenuItem(
+                  value: connotation,
+                  child: Text(connotation.name.substring(0, 1).toUpperCase() + connotation.name.substring(1)),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  _connotation = value!;
+                });
+              },
+            ),
           ],
         ),
       ),
@@ -70,6 +88,7 @@ class _AddOrEditSymptomDialogState extends ConsumerState<AddOrEditSymptomDialog>
                 id: widget.symptom?.id,
                 name: _name,
                 emoji: _emoji,
+                connotation: _connotation,
               );
               if (widget.symptom == null) {
                 ref.read(symptomsProvider.notifier).addSymptom(newSymptom);

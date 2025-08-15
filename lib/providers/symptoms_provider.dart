@@ -2,6 +2,8 @@ import 'package:decaf/providers/caffeine_options_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sembast/sembast.dart';
 
+enum SymptomConnotation { positive, negative }
+
 final symptomsProvider = StateNotifierProvider<SymptomsNotifier, AsyncValue<List<Symptom>>>((ref) {
   return SymptomsNotifier(ref.watch(databaseProvider));
 });
@@ -10,13 +12,15 @@ class Symptom {
   final int? id;
   final String name;
   final String emoji;
+  final SymptomConnotation connotation;
 
-  Symptom({this.id, required this.name, required this.emoji});
+  Symptom({this.id, required this.name, required this.emoji, this.connotation = SymptomConnotation.negative});
 
   Map<String, dynamic> toMap() {
     return {
       'name': name,
       'emoji': emoji,
+      'connotation': connotation.name,
     };
   }
 
@@ -25,6 +29,10 @@ class Symptom {
       id: id,
       name: map['name'],
       emoji: map['emoji'],
+      connotation: SymptomConnotation.values.firstWhere(
+        (e) => e.name == map['connotation'],
+        orElse: () => SymptomConnotation.negative,
+      ),
     );
   }
 }
@@ -53,10 +61,14 @@ class SymptomsNotifier extends StateNotifier<AsyncValue<List<Symptom>>> {
       final count = await store.count(db);
       if (count == 0) {
         await store.addAll(db, [
-          Symptom(name: 'Anxiety', emoji: '😥').toMap(),
-          Symptom(name: 'Headache', emoji: '🤕').toMap(),
-          Symptom(name: 'Fatigue', emoji: '😴').toMap(),
-          Symptom(name: 'Jitters', emoji: '🥴').toMap(),
+          Symptom(name: 'Anxiety', emoji: '😥', connotation: SymptomConnotation.negative).toMap(),
+          Symptom(name: 'Headache', emoji: '🤕', connotation: SymptomConnotation.negative).toMap(),
+          Symptom(name: 'Fatigue', emoji: '😴', connotation: SymptomConnotation.negative).toMap(),
+          Symptom(name: 'Jitters', emoji: '🥴', connotation: SymptomConnotation.negative).toMap(),
+          Symptom(name: 'Alertness', emoji: '🎯', connotation: SymptomConnotation.positive).toMap(),
+          Symptom(name: 'Focus', emoji: '🧠', connotation: SymptomConnotation.positive).toMap(),
+          Symptom(name: 'Energy', emoji: '⚡', connotation: SymptomConnotation.positive).toMap(),
+          Symptom(name: 'Mood Boost', emoji: '😊', connotation: SymptomConnotation.positive).toMap(),
         ]);
         _getSymptoms();
       }
