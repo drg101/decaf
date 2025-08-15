@@ -17,17 +17,51 @@ class ManageCaffeineOptionsPage extends ConsumerWidget {
       ),
       body: options.when(
         data: (options) {
-          return ListView.builder(
+          return ReorderableListView.builder(
             itemCount: options.length,
+            onReorder: (oldIndex, newIndex) {
+              if (newIndex > oldIndex) {
+                newIndex -= 1;
+              }
+              final reorderedOptions = List<CaffeineOption>.from(options);
+              final option = reorderedOptions.removeAt(oldIndex);
+              reorderedOptions.insert(newIndex, option);
+              ref.read(caffeineOptionsProvider.notifier).reorderOptions(reorderedOptions);
+            },
             itemBuilder: (context, index) {
               final option = options[index];
               return ListTile(
-                leading: Text(option.emoji, style: const TextStyle(fontSize: 24)),
-                title: Text(option.name),
-                subtitle: Text('${option.caffeineAmount}mg'),
+                key: ValueKey(option.id),
+                leading: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.drag_handle, color: Colors.grey[600]),
+                    const SizedBox(width: 8),
+                    Text(option.emoji, style: const TextStyle(fontSize: 24)),
+                  ],
+                ),
+                title: Text(
+                  option.name,
+                  style: TextStyle(
+                    color: option.enabled ? null : Colors.grey,
+                    fontWeight: option.enabled ? FontWeight.normal : FontWeight.w300,
+                  ),
+                ),
+                subtitle: Text(
+                  '${option.caffeineAmount}mg',
+                  style: TextStyle(
+                    color: option.enabled ? null : Colors.grey,
+                  ),
+                ),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    Switch(
+                      value: option.enabled,
+                      onChanged: (value) {
+                        ref.read(caffeineOptionsProvider.notifier).toggleOption(option.id!, value);
+                      },
+                    ),
                     IconButton(
                       icon: const Icon(Icons.edit),
                       onPressed: () {

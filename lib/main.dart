@@ -1,6 +1,6 @@
 import 'package:decaf/constants/colors.dart';
-import 'package:decaf/pages/charts.dart';
 import 'package:decaf/pages/home.dart';
+import 'package:decaf/pages/settings.dart';
 import 'package:decaf/widgets/add_caffeine_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -43,7 +43,7 @@ class MainScreen extends ConsumerWidget {
 
   final List<Widget> _pages = const [
     HomePage(),
-    ChartsPage(),
+    SettingsPage(),
   ];
 
   @override
@@ -81,8 +81,8 @@ class MainScreen extends ConsumerWidget {
                     label: 'Home',
                   ),
                   BottomNavigationBarItem(
-                    icon: Icon(Icons.analytics),
-                    label: 'Analyze',
+                    icon: Icon(Icons.settings),
+                    label: 'Settings',
                   ),
                 ],
               ),

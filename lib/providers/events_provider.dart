@@ -1,7 +1,6 @@
+import 'package:decaf/providers/database_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sembast/sembast_io.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart';
+import 'package:sembast/sembast.dart';
 import 'package:uuid/uuid.dart';
 
 enum EventType { caffeine, symptom }
@@ -38,26 +37,17 @@ class Event {
 }
 
 class EventNotifier extends AsyncNotifier<List<Event>> {
-  Database? _db;
   final _store = stringMapStoreFactory.store('events');
   final _uuid = const Uuid();
 
   @override
   Future<List<Event>> build() async {
-    await _initDb();
     return _loadEvents();
   }
 
-  Future<void> _initDb() async {
-    if (_db != null) return;
-    final appDir = await getApplicationDocumentsDirectory();
-    await appDir.create(recursive: true);
-    final dbPath = join(appDir.path, 'events.db');
-    _db = await databaseFactoryIo.openDatabase(dbPath);
-  }
-
   Future<List<Event>> _loadEvents() async {
-    final snapshots = await _store.find(_db!);
+    final db = await ref.read(databaseProvider.future);
+    final snapshots = await _store.find(db);
     return snapshots
         .map((snapshot) => Event.fromJson(snapshot.value, snapshot.key))
         .toList();
@@ -69,6 +59,7 @@ class EventNotifier extends AsyncNotifier<List<Event>> {
     double value,
     DateTime timestamp,
   ) async {
+    final db = await ref.read(databaseProvider.future);
     final eventData = {
       'type': type.name,
       'name': name,
@@ -77,7 +68,7 @@ class EventNotifier extends AsyncNotifier<List<Event>> {
     };
 
     final newId = _uuid.v4();
-    await _store.record(newId).add(_db!, eventData);
+    await _store.record(newId).add(db, eventData);
 
     final newEvent = Event(
       id: newId,
@@ -92,20 +83,23 @@ class EventNotifier extends AsyncNotifier<List<Event>> {
   }
 
   Future<void> updateEvent(Event updatedEvent) async {
-    await _store.record(updatedEvent.id).put(_db!, updatedEvent.toJson());
+    final db = await ref.read(databaseProvider.future);
+    await _store.record(updatedEvent.id).put(db, updatedEvent.toJson());
     final previousState = await future;
     state = AsyncData(previousState.map((event) => event.id == updatedEvent.id ? updatedEvent : event).toList());
   }
 
   Future<void> deleteEvent(String eventId) async {
-    await _store.record(eventId).delete(_db!);
+    final db = await ref.read(databaseProvider.future);
+    await _store.record(eventId).delete(db);
     final previousState = await future;
     state = AsyncData(previousState.where((event) => event.id != eventId).toList());
   }
 
   Future<void> clearAllEvents() async {
-    await _store.drop(_db!); // Clears all records from the store
-    state = const AsyncData([]); // Set state to an empty list
+    final db = await ref.read(databaseProvider.future);
+    await _store.drop(db);
+    state = const AsyncData([]);
   }
 }
 

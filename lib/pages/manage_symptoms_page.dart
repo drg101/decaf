@@ -90,7 +90,20 @@ class ManageSymptomsPage extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 8),
-            ...symptoms.map((symptom) => _buildSymptomTile(context, ref, symptom)),
+            ReorderableListView(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              onReorder: (oldIndex, newIndex) {
+                if (newIndex > oldIndex) {
+                  newIndex -= 1;
+                }
+                final reorderedSymptoms = List<Symptom>.from(symptoms);
+                final symptom = reorderedSymptoms.removeAt(oldIndex);
+                reorderedSymptoms.insert(newIndex, symptom);
+                ref.read(symptomsProvider.notifier).reorderSymptoms(reorderedSymptoms);
+              },
+              children: symptoms.map((symptom) => _buildSymptomTile(context, ref, symptom)).toList(),
+            ),
           ],
         ),
       ),
@@ -99,12 +112,32 @@ class ManageSymptomsPage extends ConsumerWidget {
 
   Widget _buildSymptomTile(BuildContext context, WidgetRef ref, Symptom symptom) {
     return ListTile(
+      key: ValueKey(symptom.id),
       contentPadding: EdgeInsets.zero,
-      leading: Text(symptom.emoji, style: const TextStyle(fontSize: 24)),
-      title: Text(symptom.name),
+      leading: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.drag_handle, color: Colors.grey[600]),
+          const SizedBox(width: 8),
+          Text(symptom.emoji, style: const TextStyle(fontSize: 24)),
+        ],
+      ),
+      title: Text(
+        symptom.name,
+        style: TextStyle(
+          color: symptom.enabled ? null : Colors.grey,
+          fontWeight: symptom.enabled ? FontWeight.normal : FontWeight.w300,
+        ),
+      ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
+          Switch(
+            value: symptom.enabled,
+            onChanged: (value) {
+              ref.read(symptomsProvider.notifier).toggleSymptom(symptom.id!, value);
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () {

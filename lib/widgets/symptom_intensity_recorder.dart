@@ -25,7 +25,7 @@ class _SymptomIntensityRecorderState extends State<SymptomIntensityRecorder> {
   @override
   void initState() {
     super.initState();
-    _intensity = widget.initialIntensity;
+    _intensity = widget.initialIntensity == 0 ? -1 : widget.initialIntensity;
   }
 
   @override
@@ -33,13 +33,13 @@ class _SymptomIntensityRecorderState extends State<SymptomIntensityRecorder> {
     super.didUpdateWidget(oldWidget);
     if (widget.initialIntensity != oldWidget.initialIntensity) {
       setState(() {
-        _intensity = widget.initialIntensity;
+        _intensity = widget.initialIntensity == 0 ? -1 : widget.initialIntensity;
       });
     }
   }
 
   Color? _getColorForIntensity(int index) {
-    if (index > _intensity || _intensity < 0) {
+    if (_intensity == -1 || index > _intensity) {
       return Colors.grey[500];
     }
 
@@ -76,12 +76,10 @@ class _SymptomIntensityRecorderState extends State<SymptomIntensityRecorder> {
               return GestureDetector(
                 onTap: () {
                   setState(() {
-                    if (_intensity == index) {
-                      _intensity = -1; // Use -1 to indicate no selection
-                    } else {
-                      _intensity = index;
-                    }
-                    widget.onIntensityChanged(_intensity < 0 ? 0 : _intensity);
+                    final clickedValue = index;
+                    final newIntensity = (_intensity == clickedValue) ? -1 : clickedValue;
+                    _intensity = newIntensity;
+                    widget.onIntensityChanged(_intensity == -1 ? 0 : _intensity);
                   });
                 },
                 child: Container(
@@ -90,7 +88,7 @@ class _SymptomIntensityRecorderState extends State<SymptomIntensityRecorder> {
                   margin: const EdgeInsets.symmetric(horizontal: 4),
                   decoration: BoxDecoration(
                     color: _getColorForIntensity(index),
-                    border: index >= _intensity ? Border.all(color: Colors.white, width: 1) : null,
+                    border: (_intensity == -1 || index > _intensity) ? Border.all(color: Colors.white, width: 1) : null,
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Center(

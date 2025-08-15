@@ -25,6 +25,8 @@ class DailyCaffeineChart extends ConsumerWidget {
             data: (symptoms) {
               final caffeineEvents =
                   events.where((e) => e.type == EventType.caffeine).toList();
+              final symptomEvents =
+                  events.where((e) => e.type == EventType.symptom && e.value > 0).toList();
 
               final dailyTotals = <DateTime, double>{};
               for (var event in caffeineEvents) {
@@ -43,18 +45,35 @@ class DailyCaffeineChart extends ConsumerWidget {
                 );
               }
 
-              if (caffeineEvents.isEmpty) {
+              if (caffeineEvents.isEmpty && symptomEvents.isEmpty) {
                 return const SizedBox(
                   height: 150,
                   child: Center(
-                    child: Text("Log your first coffee to see the chart."),
+                    child: Text("Log your first coffee or symptom to see the chart."),
                   ),
                 );
               }
 
-              final sortedDays = dailyTotals.keys.toList()..sort();
-              final firstDay = sortedDays.first;
-              final lastDay = sortedDays.last;
+              // Get all days that have either caffeine or symptom events
+              final allEventDays = <DateTime>{};
+              
+              // Add caffeine event days
+              for (var event in caffeineEvents) {
+                final eventDate = DateTime.fromMillisecondsSinceEpoch(event.timestamp);
+                final day = DateTime(eventDate.year, eventDate.month, eventDate.day);
+                allEventDays.add(day);
+              }
+              
+              // Add symptom event days
+              for (var event in symptomEvents) {
+                final eventDate = DateTime.fromMillisecondsSinceEpoch(event.timestamp);
+                final day = DateTime(eventDate.year, eventDate.month, eventDate.day);
+                allEventDays.add(day);
+              }
+
+              final sortedEventDays = allEventDays.toList()..sort();
+              final firstDay = sortedEventDays.first;
+              final lastDay = sortedEventDays.last;
 
               final allDays = <DateTime>[];
               for (int i = 0; i <= lastDay.difference(firstDay).inDays; i++) {
@@ -82,13 +101,13 @@ class DailyCaffeineChart extends ConsumerWidget {
               final positiveSymptoms =
                   symptoms
                       .where(
-                        (s) => s.connotation == SymptomConnotation.positive,
+                        (s) => s.connotation == SymptomConnotation.positive && s.enabled,
                       )
                       .toList();
               final negativeSymptoms =
                   symptoms
                       .where(
-                        (s) => s.connotation == SymptomConnotation.negative,
+                        (s) => s.connotation == SymptomConnotation.negative && s.enabled,
                       )
                       .toList();
 
@@ -254,8 +273,8 @@ class DailyCaffeineChart extends ConsumerWidget {
                             reservedSize: 24,
                             getTitlesWidget: (value, meta) {
                               final index = value.toInt();
-                              if (index >= 0 && index < sortedDays.length) {
-                                final day = sortedDays[index];
+                              if (index >= 0 && index < fullSortedDays.length) {
+                                final day = fullSortedDays[index];
                                 return Text(DateFormat.E().format(day));
                               }
                               return const Text('');

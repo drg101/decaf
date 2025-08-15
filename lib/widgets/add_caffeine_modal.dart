@@ -66,7 +66,7 @@ class _AddCaffeineModalState extends ConsumerState<AddCaffeineModal> {
             children: [
               ...caffeineOptions.when(
                 data: (options) {
-                  return options.map((option) {
+                  return options.where((option) => option.enabled).map((option) {
                     final name = '${option.emoji} ${option.name}';
                     return ChoiceChip(
                       label: Text('$name (${option.caffeineAmount.toStringAsFixed(0)}mg)'),
