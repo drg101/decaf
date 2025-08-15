@@ -6,7 +6,8 @@ import 'package:decaf/widgets/daily_caffeine_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:decaf/widgets/caffeine_list_view.dart';
-import 'package:decaf/widgets/input_slider.dart';
+import 'package:decaf/providers/symptoms_provider.dart';
+import 'package:decaf/widgets/symptom_intensity_recorder.dart';
 import 'package:intl/intl.dart';
 
 class HomePage extends ConsumerWidget {
@@ -70,6 +71,7 @@ class HomePage extends ConsumerWidget {
     final selectedDate = ref.watch(selectedDateProvider);
     final isToday = _isToday(selectedDate);
     final eventsAsync = ref.watch(eventsProvider);
+    final symptomsAsync = ref.watch(symptomsProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -180,43 +182,76 @@ class HomePage extends ConsumerWidget {
                       eventDate.day == selectedDate.day;
                 }).toList();
 
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CaffeineListView(
-                      caffeineEvents: caffeineEvents,
-                      showDeleteConfirmationDialog:
-                          _showDeleteConfirmationDialog,
-                    ),
-                    const InputSlider(
-                      label: "Brain Fog",
-                      lowEmoji: "🧠",
-                      lowText: "Clear Minded",
-                      highEmoji: "🌫️",
-                      highText: "Super Foggy",
-                    ),
-                    const InputSlider(
-                      label: "Headache",
-                      lowEmoji: "😊",
-                      lowText: "No Headache",
-                      highEmoji: "🤕",
-                      highText: "Severe Headache",
-                    ),
-                    const InputSlider(
-                      label: "Anxiety",
-                      lowEmoji: "😌",
-                      lowText: "Calm",
-                      highEmoji: "😥",
-                      highText: "Anxious",
-                    ),
-                    const InputSlider(
-                      label: "Fatigue",
-                      lowEmoji: "⚡",
-                      lowText: "Energized",
-                      highEmoji: "😴",
-                      highText: "Exhausted",
-                    ),
-                  ],
+                return Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CaffeineListView(
+                        caffeineEvents: caffeineEvents,
+                        showDeleteConfirmationDialog:
+                            _showDeleteConfirmationDialog,
+                      ),
+                      symptomsAsync.when(
+                        data: (symptoms) {
+                          return Column(
+                            children: symptoms.map((symptom) {
+                              final symptomEvents = events.where((event) {
+                                final eventDate =
+                                    DateTime.fromMillisecondsSinceEpoch(
+                                        event.timestamp);
+                                return event.type == EventType.symptom &&
+                                    event.name == symptom.name &&
+                                    eventDate.year == selectedDate.year &&
+                                    eventDate.month == selectedDate.month &&
+                                    eventDate.day == selectedDate.day;
+                              }).toList();
+
+                              final existingEvent = symptomEvents.isNotEmpty
+                                  ? symptomEvents.first
+                                  : null;
+                              final initialIntensity =
+                                  existingEvent?.value.toInt() ?? 0;
+
+                              return SymptomIntensityRecorder(
+                                key: ValueKey(symptom.id),
+                                symptom: symptom,
+                                initialIntensity: initialIntensity,
+                                onIntensityChanged: (intensity) {
+                                  final existingEvent =
+                                      symptomEvents.isNotEmpty
+                                          ? symptomEvents.first
+                                          : null;
+
+                                  if (existingEvent != null) {
+                                    final updatedEvent = Event(
+                                      id: existingEvent.id,
+                                      type: EventType.symptom,
+                                      name: symptom.name,
+                                      value: intensity.toDouble(),
+                                      timestamp: existingEvent.timestamp,
+                                    );
+                                    ref
+                                        .read(eventsProvider.notifier)
+                                        .updateEvent(updatedEvent);
+                                  } else {
+                                    ref.read(eventsProvider.notifier).addEvent(
+                                          EventType.symptom,
+                                          symptom.name,
+                                          intensity.toDouble(),
+                                          selectedDate,
+                                        );
+                                  }
+                                },
+                              );
+                            }).toList(),
+                          );
+                        },
+                        loading: () => const SizedBox.shrink(),
+                        error: (e, st) => Text('Error: $e'),
+                      ),
+                    ],
+                  ),
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
