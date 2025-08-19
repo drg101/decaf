@@ -49,6 +49,7 @@ class MainScreen extends ConsumerWidget {
         onPressed: () {
           showModalBottomSheet(
             context: context,
+            isScrollControlled: true,
             builder: (context) => const AddCaffeineModal(),
           );
         },
