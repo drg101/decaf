@@ -5,7 +5,6 @@ import 'package:decaf/providers/symptoms_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:decaf/providers/events_provider.dart';
-import 'package:decaf/privacy_policy.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -85,12 +84,11 @@ class SettingsPage extends ConsumerWidget {
           ListTile(
             leading: const Icon(Icons.privacy_tip),
             title: const Text('Privacy Policy'),
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const PrivacyPolicyPage(),
-                ),
-              );
+            onTap: () async {
+              final Uri url = Uri.parse('https://apphelion.dev/apps/decaf/privacy_policy');
+              if (await canLaunchUrl(url)) {
+                await launchUrl(url);
+              }
             },
           ),
           ListTile(

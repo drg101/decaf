@@ -27,6 +27,7 @@ class MyApp extends StatelessWidget {
       ),
       themeMode: ThemeMode.light,
       home: const MainScreen(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
