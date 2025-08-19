@@ -36,6 +36,10 @@ Keep track of withdrawal symptoms to understand your body's response and adjust 
 - ✅ iOS
 - ✅ Android
 
+## 💬 Contributions
+
+Decaf is not accepting any contributions. If you find a bug and would like to create an issue, please feel free to do so.
+
 ## 📄 License
 
 This project is licensed under the GNU General Public License v3.0. See the [LICENSE](LICENSE) file for details.
