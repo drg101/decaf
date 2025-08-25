@@ -25,7 +25,7 @@ class _SymptomIntensityRecorderState extends State<SymptomIntensityRecorder> {
   @override
   void initState() {
     super.initState();
-    _intensity = widget.initialIntensity == 0 ? -1 : widget.initialIntensity;
+    _intensity = widget.initialIntensity == 0 ? -1 : widget.initialIntensity - 1;
   }
 
   @override
@@ -33,7 +33,7 @@ class _SymptomIntensityRecorderState extends State<SymptomIntensityRecorder> {
     super.didUpdateWidget(oldWidget);
     if (widget.initialIntensity != oldWidget.initialIntensity) {
       setState(() {
-        _intensity = widget.initialIntensity == 0 ? -1 : widget.initialIntensity;
+        _intensity = widget.initialIntensity == 0 ? -1 : widget.initialIntensity - 1;
       });
     }
   }
@@ -79,7 +79,7 @@ class _SymptomIntensityRecorderState extends State<SymptomIntensityRecorder> {
                     final clickedValue = index;
                     final newIntensity = (_intensity == clickedValue) ? -1 : clickedValue;
                     _intensity = newIntensity;
-                    widget.onIntensityChanged(_intensity == -1 ? 0 : _intensity);
+                    widget.onIntensityChanged(_intensity == -1 ? 0 : _intensity + 1);
                   });
                 },
                 child: Container(

@@ -2,6 +2,7 @@ import 'package:decaf/pages/manage_caffeine_options.dart';
 import 'package:decaf/pages/manage_symptoms_page.dart';
 import 'package:decaf/providers/caffeine_options_provider.dart';
 import 'package:decaf/providers/symptoms_provider.dart';
+import 'package:decaf/utils/analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:decaf/providers/events_provider.dart';
@@ -39,6 +40,7 @@ class SettingsPage extends ConsumerWidget {
                       TextButton(
                         child: const Text('Reset'),
                         onPressed: () async {
+                          Analytics.track(AnalyticsEvent.resetAccount);
                           // Clear all user events
                           await ref.read(eventsProvider.notifier).clearAllEvents();
                           
@@ -95,6 +97,7 @@ class SettingsPage extends ConsumerWidget {
             leading: const Icon(Icons.favorite),
             title: const Text('Leave us a Review'),
             onTap: () async {
+              Analytics.track(AnalyticsEvent.requestAppReview);
               final InAppReview inAppReview = InAppReview.instance;
               
               if (await inAppReview.isAvailable()) {

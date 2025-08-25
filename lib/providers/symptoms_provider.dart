@@ -85,41 +85,97 @@ class SymptomsNotifier extends StateNotifier<AsyncValue<List<Symptom>>> {
     await db.whenData((db) async {
       final count = await store.count(db);
       if (count == 0) {
-        await store.addAll(db, [
-          // Common positive effects (enabled by default)
-          Symptom(name: 'Alertness', emoji: '👁️', connotation: SymptomConnotation.positive, order: 0, enabled: true).toMap(),
-          Symptom(name: 'Focus', emoji: '🎯', connotation: SymptomConnotation.positive, order: 1, enabled: true).toMap(),
-          Symptom(name: 'Energy', emoji: '⚡', connotation: SymptomConnotation.positive, order: 2, enabled: true).toMap(),
-          Symptom(name: 'Mood', emoji: '😊', connotation: SymptomConnotation.positive, order: 3, enabled: true).toMap(),
-          
-          // Common negative effects (enabled by default)
-          Symptom(name: 'Anxiety', emoji: '😰', connotation: SymptomConnotation.negative, order: 4, enabled: true).toMap(),
-          Symptom(name: 'Jitters', emoji: '🫨', connotation: SymptomConnotation.negative, order: 5, enabled: true).toMap(),
-          Symptom(name: 'Headache', emoji: '🤕', connotation: SymptomConnotation.negative, order: 6, enabled: true).toMap(),
-          Symptom(name: 'Fatigue', emoji: '😴', connotation: SymptomConnotation.negative, order: 7, enabled: true).toMap(),
-          
-          // Additional positive effects (disabled by default)
-          Symptom(name: 'Motivation', emoji: '💪', connotation: SymptomConnotation.positive, order: 8, enabled: false).toMap(),
-          Symptom(name: 'Productivity', emoji: '📈', connotation: SymptomConnotation.positive, order: 9, enabled: false).toMap(),
-          Symptom(name: 'Confidence', emoji: '😎', connotation: SymptomConnotation.positive, order: 10, enabled: false).toMap(),
-          Symptom(name: 'Sociability', emoji: '🗣️', connotation: SymptomConnotation.positive, order: 11, enabled: false).toMap(),
-          Symptom(name: 'Creativity', emoji: '🎨', connotation: SymptomConnotation.positive, order: 12, enabled: false).toMap(),
-          Symptom(name: 'Euphoria', emoji: '🥳', connotation: SymptomConnotation.positive, order: 13, enabled: false).toMap(),
-          Symptom(name: 'Mental Clarity', emoji: '🔍', connotation: SymptomConnotation.positive, order: 14, enabled: false).toMap(),
-          Symptom(name: 'Wakefulness', emoji: '👀', connotation: SymptomConnotation.positive, order: 15, enabled: false).toMap(),
-          
-          // Additional negative effects (disabled by default)
-          Symptom(name: 'Heart Racing', emoji: '💓', connotation: SymptomConnotation.negative, order: 16, enabled: false).toMap(),
-          Symptom(name: 'Sleep Issues', emoji: '😵‍💫', connotation: SymptomConnotation.negative, order: 17, enabled: false).toMap(),
-          Symptom(name: 'Stomach Upset', emoji: '🤢', connotation: SymptomConnotation.negative, order: 18, enabled: false).toMap(),
-          Symptom(name: 'Irritability', emoji: '😤', connotation: SymptomConnotation.negative, order: 19, enabled: false).toMap(),
-          Symptom(name: 'Restlessness', emoji: '😣', connotation: SymptomConnotation.negative, order: 20, enabled: false).toMap(),
-          Symptom(name: 'Sweating', emoji: '💦', connotation: SymptomConnotation.negative, order: 21, enabled: false).toMap(),
-          Symptom(name: 'Tremors', emoji: '🤲', connotation: SymptomConnotation.negative, order: 22, enabled: false).toMap(),
-          Symptom(name: 'Dizziness', emoji: '😵', connotation: SymptomConnotation.negative, order: 23, enabled: false).toMap(),
-          Symptom(name: 'Rapid Thoughts', emoji: '🧠', connotation: SymptomConnotation.negative, order: 24, enabled: false).toMap(),
-          Symptom(name: 'Dehydration', emoji: '🏜️', connotation: SymptomConnotation.negative, order: 25, enabled: false).toMap(),
-        ]);
+        // Define default symptoms in arrays for easier management
+        final positiveSymptoms = [
+          {'name': 'Energy', 'emoji': '⚡', 'enabled': true},
+          {'name': 'Mood', 'emoji': '😊', 'enabled': true},
+          {'name': 'Sleep Quality', 'emoji': '😴', 'enabled': true},
+        ];
+        
+        final negativeSymptoms = [
+          {'name': 'Brain Fog', 'emoji': '🌫️', 'enabled': true},
+          {'name': 'Mid Day Crash', 'emoji': '💥', 'enabled': true},
+          {'name': 'Anxiety', 'emoji': '😰', 'enabled': true},
+        ];
+        
+        final additionalPositives = [
+          {'name': 'Focus', 'emoji': '🎯'},
+          {'name': 'Alertness', 'emoji': '👁️'},
+          {'name': 'Motivation', 'emoji': '💪'},
+          {'name': 'Productivity', 'emoji': '📈'},
+          {'name': 'Confidence', 'emoji': '😎'},
+          {'name': 'Sociability', 'emoji': '🗣️'},
+          {'name': 'Creativity', 'emoji': '🎨'},
+          {'name': 'Euphoria', 'emoji': '🥳'},
+          {'name': 'Mental Clarity', 'emoji': '🔍'},
+          {'name': 'Wakefulness', 'emoji': '👀'},
+        ];
+        
+        final additionalNegatives = [
+          {'name': 'Jitters', 'emoji': '🫨'},
+          {'name': 'Heart Racing', 'emoji': '💓'},
+          {'name': 'Sleep Issues', 'emoji': '😵‍💫'},
+          {'name': 'Headache', 'emoji': '🤕'},
+          {'name': 'Fatigue', 'emoji': '😪'},
+          {'name': 'Stomach Upset', 'emoji': '🤢'},
+          {'name': 'Irritability', 'emoji': '😤'},
+          {'name': 'Restlessness', 'emoji': '😣'},
+          {'name': 'Sweating', 'emoji': '💦'},
+          {'name': 'Tremors', 'emoji': '🤲'},
+          {'name': 'Dizziness', 'emoji': '😵'},
+          {'name': 'Rapid Thoughts', 'emoji': '🧠'},
+          {'name': 'Dehydration', 'emoji': '🏜️'},
+        ];
+        
+        // Build the complete list with automatic ordering
+        final allSymptoms = <Map<String, dynamic>>[];
+        int order = 0;
+        
+        // Add enabled positive symptoms
+        for (final symptom in positiveSymptoms) {
+          allSymptoms.add(Symptom(
+            name: symptom['name'] as String,
+            emoji: symptom['emoji'] as String,
+            connotation: SymptomConnotation.positive,
+            order: order++,
+            enabled: symptom['enabled'] as bool? ?? false,
+          ).toMap());
+        }
+        
+        // Add enabled negative symptoms
+        for (final symptom in negativeSymptoms) {
+          allSymptoms.add(Symptom(
+            name: symptom['name'] as String,
+            emoji: symptom['emoji'] as String,
+            connotation: SymptomConnotation.negative,
+            order: order++,
+            enabled: symptom['enabled'] as bool? ?? false,
+          ).toMap());
+        }
+        
+        // Add additional positive symptoms (disabled by default)
+        for (final symptom in additionalPositives) {
+          allSymptoms.add(Symptom(
+            name: symptom['name'] as String,
+            emoji: symptom['emoji'] as String,
+            connotation: SymptomConnotation.positive,
+            order: order++,
+            enabled: false,
+          ).toMap());
+        }
+        
+        // Add additional negative symptoms (disabled by default)
+        for (final symptom in additionalNegatives) {
+          allSymptoms.add(Symptom(
+            name: symptom['name'] as String,
+            emoji: symptom['emoji'] as String,
+            connotation: SymptomConnotation.negative,
+            order: order++,
+            enabled: false,
+          ).toMap());
+        }
+        
+        await store.addAll(db, allSymptoms);
         _getSymptoms();
       }
     });

@@ -1,9 +1,10 @@
 import 'package:decaf/constants/colors.dart';
-import 'package:decaf/main.dart';
 import 'package:decaf/pages/manage_symptoms_page.dart';
 import 'package:decaf/providers/chart_visibility_provider.dart';
 import 'package:decaf/providers/date_provider.dart';
 import 'package:decaf/providers/events_provider.dart';
+import 'package:decaf/utils/analytics.dart';
+import 'package:decaf/utils/symptom_calculator.dart';
 import 'package:decaf/widgets/daily_caffeine_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -58,6 +59,13 @@ class HomePage extends ConsumerWidget {
             TextButton(
               child: const Text('Delete'),
               onPressed: () {
+                Analytics.track(
+                  AnalyticsEvent.deleteCaffeineEntry,
+                  {
+                    'amount': event.value,
+                    'name': event.name,
+                  },
+                );
                 ref.read(eventsProvider.notifier).deleteEvent(event.id);
                 Navigator.of(context).pop();
               },
@@ -88,6 +96,10 @@ class HomePage extends ConsumerWidget {
                     IconButton(
                       icon: const Icon(Icons.chevron_left),
                       onPressed: () {
+                        Analytics.track(
+                          AnalyticsEvent.navigateDate,
+                          {'direction': 'previous'},
+                        );
                         ref.read(selectedDateProvider.notifier).state =
                             selectedDate.subtract(const Duration(days: 1));
                       },
@@ -104,6 +116,10 @@ class HomePage extends ConsumerWidget {
                       child: IconButton(
                         icon: const Icon(Icons.chevron_right),
                         onPressed: () {
+                          Analytics.track(
+                            AnalyticsEvent.navigateDate,
+                            {'direction': 'next'},
+                          );
                           ref.read(selectedDateProvider.notifier).state =
                               selectedDate.add(const Duration(days: 1));
                         },
@@ -148,78 +164,11 @@ class HomePage extends ConsumerWidget {
                         );
 
                         // Calculate daily symptom scores
-                        final positiveSymptoms =
-                            symptoms
-                                .where(
-                                  (s) =>
-                                      s.connotation ==
-                                      SymptomConnotation.positive,
-                                )
-                                .toList();
-                        final negativeSymptoms =
-                            symptoms
-                                .where(
-                                  (s) =>
-                                      s.connotation ==
-                                      SymptomConnotation.negative,
-                                )
-                                .toList();
-
-                        double positiveSum = 0;
-                        int positiveCount = 0;
-                        double negativeSum = 0;
-                        int negativeCount = 0;
-
-                        for (final symptom in positiveSymptoms) {
-                          final symptomEvents =
-                              events.where((event) {
-                                final eventDate =
-                                    DateTime.fromMillisecondsSinceEpoch(
-                                      event.timestamp,
-                                    );
-                                return event.type == EventType.symptom &&
-                                    event.name == symptom.name &&
-                                    eventDate.year == selectedDate.year &&
-                                    eventDate.month == selectedDate.month &&
-                                    eventDate.day == selectedDate.day;
-                              }).toList();
-
-                          if (symptomEvents.isNotEmpty &&
-                              symptomEvents.first.value > 0) {
-                            positiveSum += symptomEvents.first.value;
-                            positiveCount++;
-                          }
-                        }
-
-                        for (final symptom in negativeSymptoms) {
-                          final symptomEvents =
-                              events.where((event) {
-                                final eventDate =
-                                    DateTime.fromMillisecondsSinceEpoch(
-                                      event.timestamp,
-                                    );
-                                return event.type == EventType.symptom &&
-                                    event.name == symptom.name &&
-                                    eventDate.year == selectedDate.year &&
-                                    eventDate.month == selectedDate.month &&
-                                    eventDate.day == selectedDate.day;
-                              }).toList();
-
-                          if (symptomEvents.isNotEmpty &&
-                              symptomEvents.first.value > 0) {
-                            negativeSum += symptomEvents.first.value;
-                            negativeCount++;
-                          }
-                        }
-
-                        final positiveScore =
-                            positiveCount > 0
-                                ? positiveSum / positiveCount
-                                : 0.0;
-                        final negativeScore =
-                            negativeCount > 0
-                                ? negativeSum / negativeCount
-                                : 0.0;
+                        final symptomScores = SymptomCalculator.calculateDailyScores(
+                          events: events,
+                          symptoms: symptoms,
+                          date: selectedDate,
+                        );
 
                         return Consumer(
                           builder: (context, ref, child) {
@@ -245,6 +194,10 @@ class HomePage extends ConsumerWidget {
                                           Theme.of(context).colorScheme.primary,
                                           visibility.showCaffeine,
                                           () {
+                                            Analytics.track(
+                                              AnalyticsEvent.toggleChartVisibility,
+                                              {'chart_type': 'caffeine'},
+                                            );
                                             ref
                                                 .read(
                                                   chartVisibilityProvider
@@ -263,12 +216,16 @@ class HomePage extends ConsumerWidget {
                                         child: _buildClickableStatsItem(
                                           context,
                                           'Positives',
-                                          positiveCount > 0
-                                              ? positiveScore.toStringAsFixed(1)
+                                          symptomScores.positiveCount > 0
+                                              ? symptomScores.positiveScore.toStringAsFixed(1)
                                               : '—',
                                           AppColors.positiveEffect,
                                           visibility.showPositives,
                                           () {
+                                            Analytics.track(
+                                              AnalyticsEvent.toggleChartVisibility,
+                                              {'chart_type': 'positives'},
+                                            );
                                             ref
                                                 .read(
                                                   chartVisibilityProvider
@@ -287,12 +244,16 @@ class HomePage extends ConsumerWidget {
                                         child: _buildClickableStatsItem(
                                           context,
                                           'Negatives',
-                                          negativeCount > 0
-                                              ? negativeScore.toStringAsFixed(1)
+                                          symptomScores.negativeCount > 0
+                                              ? symptomScores.negativeScore.toStringAsFixed(1)
                                               : '—',
                                           AppColors.negativeEffect,
                                           visibility.showNegatives,
                                           () {
+                                            Analytics.track(
+                                              AnalyticsEvent.toggleChartVisibility,
+                                              {'chart_type': 'negatives'},
+                                            );
                                             ref
                                                 .read(
                                                   chartVisibilityProvider
@@ -506,33 +467,33 @@ class SymptomCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    double totalScore = 0;
-    int countWithValues = 0;
-
-    for (final symptom in symptoms) {
-      final symptomEvents =
-          events.where((event) {
-            final eventDate = DateTime.fromMillisecondsSinceEpoch(
-              event.timestamp,
-            );
-            return event.type == EventType.symptom &&
-                event.name == symptom.name &&
-                eventDate.year == selectedDate.year &&
-                eventDate.month == selectedDate.month &&
-                eventDate.day == selectedDate.day;
-          }).toList();
-
-      if (symptomEvents.isNotEmpty && symptomEvents.first.value > 0) {
-        totalScore += symptomEvents.first.value;
-        countWithValues++;
-      }
-    }
-
-    final averageScore =
-        countWithValues > 0 ? totalScore / countWithValues : 0.0;
-    final isPositive =
-        symptoms.isNotEmpty &&
+    // Use centralized calculation for consistency
+    final allSymptoms = symptoms
+        .map((s) => Symptom(
+              id: s.id,
+              name: s.name,
+              emoji: s.emoji,
+              connotation: s.connotation,
+              order: s.order,
+              enabled: true, // Override enabled to calculate for these specific symptoms
+            ))
+        .toList();
+    
+    final symptomScores = SymptomCalculator.calculateDailyScores(
+      events: events,
+      symptoms: allSymptoms,
+      date: selectedDate,
+    );
+    
+    final isPositive = symptoms.isNotEmpty &&
         symptoms.first.connotation == SymptomConnotation.positive;
+    
+    final averageScore = isPositive 
+        ? symptomScores.positiveScore 
+        : symptomScores.negativeScore;
+    final countWithValues = isPositive 
+        ? symptomScores.positiveCount 
+        : symptomScores.negativeCount;
     final scoreColor =
         isPositive ? AppColors.positiveEffect : AppColors.negativeEffect;
 
@@ -602,6 +563,14 @@ class SymptomCard extends ConsumerWidget {
                   symptom: symptom,
                   initialIntensity: initialIntensity,
                   onIntensityChanged: (intensity) {
+                    Analytics.track(
+                      AnalyticsEvent.recordSymptomIntensity,
+                      {
+                        'symptom_name': symptom.name,
+                        'intensity': intensity,
+                        'connotation': symptom.connotation.name,
+                      },
+                    );
                     final existingEvent =
                         symptomEvents.isNotEmpty ? symptomEvents.first : null;
 

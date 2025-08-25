@@ -1,5 +1,6 @@
 import 'package:decaf/constants/colors.dart';
 import 'package:decaf/providers/chart_visibility_provider.dart';
+import 'package:decaf/utils/symptom_calculator.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -98,78 +99,17 @@ class DailyCaffeineChart extends ConsumerWidget {
                       : 400.0; // Fallback to 400mg if no data
 
               // Calculate daily symptom scores
-              final positiveSymptoms =
-                  symptoms
-                      .where(
-                        (s) => s.connotation == SymptomConnotation.positive && s.enabled,
-                      )
-                      .toList();
-              final negativeSymptoms =
-                  symptoms
-                      .where(
-                        (s) => s.connotation == SymptomConnotation.negative && s.enabled,
-                      )
-                      .toList();
-
               final dailyPositiveScores = <DateTime, double>{};
               final dailyNegativeScores = <DateTime, double>{};
 
               for (var day in fullSortedDays) {
-                double positiveSum = 0;
-                int positiveCount = 0;
-                double negativeSum = 0;
-                int negativeCount = 0;
-
-                for (final symptom in positiveSymptoms) {
-                  final symptomEvents =
-                      events.where((event) {
-                        final eventDate = DateTime.fromMillisecondsSinceEpoch(
-                          event.timestamp,
-                        );
-                        final eventDay = DateTime(
-                          eventDate.year,
-                          eventDate.month,
-                          eventDate.day,
-                        );
-                        return event.type == EventType.symptom &&
-                            event.name == symptom.name &&
-                            eventDay == day;
-                      }).toList();
-
-                  if (symptomEvents.isNotEmpty &&
-                      symptomEvents.first.value > 0) {
-                    positiveSum += symptomEvents.first.value;
-                    positiveCount++;
-                  }
-                }
-
-                for (final symptom in negativeSymptoms) {
-                  final symptomEvents =
-                      events.where((event) {
-                        final eventDate = DateTime.fromMillisecondsSinceEpoch(
-                          event.timestamp,
-                        );
-                        final eventDay = DateTime(
-                          eventDate.year,
-                          eventDate.month,
-                          eventDate.day,
-                        );
-                        return event.type == EventType.symptom &&
-                            event.name == symptom.name &&
-                            eventDay == day;
-                      }).toList();
-
-                  if (symptomEvents.isNotEmpty &&
-                      symptomEvents.first.value > 0) {
-                    negativeSum += symptomEvents.first.value;
-                    negativeCount++;
-                  }
-                }
-
-                dailyPositiveScores[day] =
-                    positiveCount > 0 ? positiveSum / positiveCount : 0.0;
-                dailyNegativeScores[day] =
-                    negativeCount > 0 ? negativeSum / negativeCount : 0.0;
+                final symptomScores = SymptomCalculator.calculateDailyScores(
+                  events: events,
+                  symptoms: symptoms,
+                  date: day,
+                );
+                dailyPositiveScores[day] = symptomScores.positiveScore;
+                dailyNegativeScores[day] = symptomScores.negativeScore;
               }
 
               // Calculate dynamic bar width based on visible series

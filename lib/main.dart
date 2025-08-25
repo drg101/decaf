@@ -1,13 +1,23 @@
+import 'package:beaverlog_flutter/beaverlog_flutter.dart';
 import 'package:decaf/constants/colors.dart';
 import 'package:decaf/pages/home.dart';
 import 'package:decaf/pages/settings.dart';
+import 'package:decaf/utils/analytics.dart';
 import 'package:decaf/widgets/add_caffeine_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 final pageIndexProvider = StateProvider<int>((ref) => 0);
 
-void main() {
+void main() async {
+  await dotenv.load(fileName: ".env");
+  
+  BeaverLog().init(
+    appId: dotenv.env['BEAVERLOG_APP_ID']!,
+    publicKey: dotenv.env['BEAVERLOG_PK']!,
+    host: 'https://beaverlog.deno.dev',
+  );
   runApp(const ProviderScope(child: MyApp()));
 }
 
@@ -35,10 +45,7 @@ class MyApp extends StatelessWidget {
 class MainScreen extends ConsumerWidget {
   const MainScreen({super.key});
 
-  final List<Widget> _pages = const [
-    HomePage(),
-    SettingsPage(),
-  ];
+  final List<Widget> _pages = const [HomePage(), SettingsPage()];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -68,7 +75,9 @@ class MainScreen extends ConsumerWidget {
                 backgroundColor: Colors.transparent,
                 elevation: 0,
                 currentIndex: selectedIndex,
-                onTap: (index) => ref.read(pageIndexProvider.notifier).state = index,
+                onTap:
+                    (index) =>
+                        ref.read(pageIndexProvider.notifier).state = index,
                 type: BottomNavigationBarType.fixed,
                 items: const [
                   BottomNavigationBarItem(

@@ -1,5 +1,6 @@
 import 'package:decaf/constants/colors.dart';
 import 'package:decaf/providers/symptoms_provider.dart';
+import 'package:decaf/utils/analytics.dart';
 import 'package:decaf/widgets/add_or_edit_symptom_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -59,6 +60,7 @@ class ManageSymptomsPage extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
+          Analytics.track(AnalyticsEvent.addCustomSymptom);
           showDialog(
             context: context,
             builder: (context) => const AddOrEditSymptomDialog(),
@@ -135,12 +137,27 @@ class ManageSymptomsPage extends ConsumerWidget {
           Switch(
             value: symptom.enabled,
             onChanged: (value) {
+              Analytics.track(
+                AnalyticsEvent.toggleSymptom,
+                {
+                  'symptom_name': symptom.name,
+                  'enabled': value,
+                  'connotation': symptom.connotation.name,
+                },
+              );
               ref.read(symptomsProvider.notifier).toggleSymptom(symptom.id!, value);
             },
           ),
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () {
+              Analytics.track(
+                AnalyticsEvent.editSymptom,
+                {
+                  'symptom_name': symptom.name,
+                  'connotation': symptom.connotation.name,
+                },
+              );
               showDialog(
                 context: context,
                 builder: (context) => AddOrEditSymptomDialog(symptom: symptom),
@@ -150,6 +167,13 @@ class ManageSymptomsPage extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.delete),
             onPressed: () {
+              Analytics.track(
+                AnalyticsEvent.deleteSymptom,
+                {
+                  'symptom_name': symptom.name,
+                  'connotation': symptom.connotation.name,
+                },
+              );
               ref.read(symptomsProvider.notifier).deleteSymptom(symptom.id!);
             },
           ),

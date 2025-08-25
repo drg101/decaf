@@ -1,5 +1,6 @@
 
 import 'package:decaf/providers/caffeine_options_provider.dart';
+import 'package:decaf/utils/analytics.dart';
 import 'package:decaf/widgets/add_or_edit_caffeine_option_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -59,12 +60,27 @@ class ManageCaffeineOptionsPage extends ConsumerWidget {
                     Switch(
                       value: option.enabled,
                       onChanged: (value) {
+                        Analytics.track(
+                          AnalyticsEvent.toggleCaffeineOption,
+                          {
+                            'option_name': option.name,
+                            'enabled': value,
+                            'amount': option.caffeineAmount,
+                          },
+                        );
                         ref.read(caffeineOptionsProvider.notifier).toggleOption(option.id!, value);
                       },
                     ),
                     IconButton(
                       icon: const Icon(Icons.edit),
                       onPressed: () {
+                        Analytics.track(
+                          AnalyticsEvent.editCaffeineOption,
+                          {
+                            'option_name': option.name,
+                            'amount': option.caffeineAmount,
+                          },
+                        );
                         showDialog(
                           context: context,
                           builder: (context) => AddOrEditCaffeineOptionDialog(option: option),
@@ -74,6 +90,13 @@ class ManageCaffeineOptionsPage extends ConsumerWidget {
                     IconButton(
                       icon: const Icon(Icons.delete),
                       onPressed: () {
+                        Analytics.track(
+                          AnalyticsEvent.deleteCaffeineOption,
+                          {
+                            'option_name': option.name,
+                            'amount': option.caffeineAmount,
+                          },
+                        );
                         ref.read(caffeineOptionsProvider.notifier).deleteOption(option.id!);
                       },
                     ),
@@ -88,6 +111,7 @@ class ManageCaffeineOptionsPage extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
+          Analytics.track(AnalyticsEvent.addCustomCaffeineOption);
           showDialog(
             context: context,
             builder: (context) => const AddOrEditCaffeineOptionDialog(),
