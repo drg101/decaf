@@ -1,11 +1,13 @@
 import 'package:decaf/constants/colors.dart';
 import 'package:decaf/pages/manage_symptoms_page.dart';
+import 'package:decaf/pages/settings.dart';
 import 'package:decaf/providers/chart_visibility_provider.dart';
 import 'package:decaf/providers/date_provider.dart';
 import 'package:decaf/providers/events_provider.dart';
 import 'package:decaf/utils/analytics.dart';
 import 'package:decaf/utils/symptom_calculator.dart';
 import 'package:decaf/widgets/daily_caffeine_chart.dart';
+import 'package:decaf/widgets/home_plan_progress.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:decaf/widgets/caffeine_list_view.dart';
@@ -91,7 +93,6 @@ class HomePage extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     IconButton(
                       icon: const Icon(Icons.chevron_left),
@@ -104,9 +105,13 @@ class HomePage extends ConsumerWidget {
                             selectedDate.subtract(const Duration(days: 1));
                       },
                     ),
-                    Text(
-                      _formatDate(selectedDate),
-                      style: Theme.of(context).textTheme.headlineSmall,
+                    Expanded(
+                      child: Center(
+                        child: Text(
+                          _formatDate(selectedDate),
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
+                      ),
                     ),
                     Visibility(
                       visible: !isToday,
@@ -124,6 +129,16 @@ class HomePage extends ConsumerWidget {
                               selectedDate.add(const Duration(days: 1));
                         },
                       ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.settings),
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const SettingsPage(),
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -391,6 +406,8 @@ class HomePage extends ConsumerWidget {
                 error:
                     (error, stackTrace) => Center(child: Text('Error: $error')),
               ),
+              const HomePlanProgress(),
+              const SizedBox(height: 50), // Bottom padding for FAB
             ],
           ),
         ),

@@ -1,8 +1,7 @@
 import 'package:beaverlog_flutter/beaverlog_flutter.dart';
 import 'package:decaf/constants/colors.dart';
 import 'package:decaf/pages/home.dart';
-import 'package:decaf/pages/settings.dart';
-import 'package:decaf/utils/analytics.dart';
+import 'package:decaf/pages/plan_page.dart';
 import 'package:decaf/widgets/add_caffeine_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -45,7 +44,7 @@ class MyApp extends StatelessWidget {
 class MainScreen extends ConsumerWidget {
   const MainScreen({super.key});
 
-  final List<Widget> _pages = const [HomePage(), SettingsPage()];
+  final List<Widget> _pages = const [HomePage(), PlanPage()];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -85,8 +84,8 @@ class MainScreen extends ConsumerWidget {
                     label: 'Home',
                   ),
                   BottomNavigationBarItem(
-                    icon: Icon(Icons.settings),
-                    label: 'Settings',
+                    icon: Icon(Icons.calendar_month),
+                    label: 'Plan',
                   ),
                 ],
               ),
