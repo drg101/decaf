@@ -1,6 +1,8 @@
 import 'package:decaf/constants/colors.dart';
 import 'package:decaf/providers/chart_visibility_provider.dart';
+import 'package:decaf/providers/taper_plan_provider.dart';
 import 'package:decaf/utils/symptom_calculator.dart';
+import 'package:decaf/utils/taper_calculator.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,11 +21,12 @@ class DailyCaffeineChart extends ConsumerWidget {
     final symptomsAsync = ref.watch(symptomsProvider);
     final selectedDate = ref.watch(selectedDateProvider);
     final visibility = ref.watch(chartVisibilityProvider);
+    final taperPlanAsync = ref.watch(taperPlanProvider);
 
     return eventsAsync.when(
-      data:
-          (events) => symptomsAsync.when(
-            data: (symptoms) {
+      data: (events) => symptomsAsync.when(
+        data: (symptoms) => taperPlanAsync.when(
+          data: (taperPlan) {
               final caffeineEvents =
                   events.where((e) => e.type == EventType.caffeine).toList();
               final symptomEvents =
@@ -88,11 +91,28 @@ class DailyCaffeineChart extends ConsumerWidget {
 
               final fullSortedDays = fullDailyTotals.keys.toList()..sort();
 
-              // Find max caffeine for scaling
+              // Calculate taper plan targets for chart days
+              final taperTargets = <DateTime, double>{};
+              if (taperPlan != null) {
+                final schedule = TaperCalculator.generateFullSchedule(taperPlan);
+                for (var day in fullSortedDays) {
+                  final dayKey = DateTime(day.year, day.month, day.day);
+                  final target = schedule[dayKey];
+                  if (target != null) {
+                    taperTargets[day] = target;
+                  }
+                }
+              }
+
+              // Find max caffeine for scaling (including taper targets)
+              final allCaffeineValues = <double>[];
+              allCaffeineValues.addAll(fullDailyTotals.values);
+              allCaffeineValues.addAll(taperTargets.values);
+              
               final maxCaffeine =
-                  fullDailyTotals.values.isEmpty
+                  allCaffeineValues.isEmpty
                       ? 400.0
-                      : fullDailyTotals.values.reduce((a, b) => a > b ? a : b);
+                      : allCaffeineValues.reduce((a, b) => a > b ? a : b);
               final maxCaffeineForScale =
                   maxCaffeine > 0
                       ? maxCaffeine
@@ -125,10 +145,13 @@ class DailyCaffeineChart extends ConsumerWidget {
               for (var i = 0; i < fullSortedDays.length; i++) {
                 final day = fullSortedDays[i];
                 final caffeineTotal = fullDailyTotals[day]!;
+                final taperTarget = taperTargets[day] ?? 0.0;
 
                 // Normalize all values to 0-100 scale where max caffeine = 100 and max symptom score (4.0) = 100
                 final normalizedCaffeine =
                     (caffeineTotal / maxCaffeineForScale) * 100;
+                final normalizedTaperTarget =
+                    (taperTarget / maxCaffeineForScale) * 100;
                 final normalizedPositiveScore =
                     (dailyPositiveScores[day]! / 4.0) * 100;
                 final normalizedNegativeScore =
@@ -166,6 +189,11 @@ class DailyCaffeineChart extends ConsumerWidget {
                           borderRadius: const BorderRadius.vertical(
                             top: Radius.circular(4),
                           ),
+                          backDrawRodData: normalizedTaperTarget > 0 ? BackgroundBarChartRodData(
+                            show: true,
+                            toY: normalizedTaperTarget,
+                            color: AppColors.caffeine.withValues(alpha: 0.2),
+                          ) : null,
                         ),
                       if (visibility.showPositives && normalizedPositiveScore > 0)
                         BarChartRodData(
@@ -247,17 +275,24 @@ class DailyCaffeineChart extends ConsumerWidget {
                 ),
               );
             },
-            loading:
-                () => const SizedBox(
-                  height: 150,
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-            error:
-                (err, stack) => SizedBox(
-                  height: 150,
-                  child: Center(child: Text('Error: $err')),
-                ),
+            loading: () => const SizedBox(
+              height: 150,
+              child: Center(child: CircularProgressIndicator()),
+            ),
+            error: (err, stack) => SizedBox(
+              height: 150,
+              child: Center(child: Text('Error: $err')),
+            ),
           ),
+          loading: () => const SizedBox(
+            height: 150,
+            child: Center(child: CircularProgressIndicator()),
+          ),
+          error: (err, stack) => SizedBox(
+            height: 150,
+            child: Center(child: Text('Error: $err')),
+          ),
+        ),
       loading:
           () => const SizedBox(
             height: 150,

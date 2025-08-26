@@ -106,10 +106,14 @@ class HomePage extends ConsumerWidget {
                       },
                     ),
                     Expanded(
-                      child: Center(
-                        child: Text(
-                          _formatDate(selectedDate),
-                          style: Theme.of(context).textTheme.headlineSmall,
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 16.0),
+                          child: Text(
+                            _formatDate(selectedDate),
+                            style: Theme.of(context).textTheme.headlineSmall,
+                          ),
                         ),
                       ),
                     ),
