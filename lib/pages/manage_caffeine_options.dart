@@ -19,6 +19,7 @@ class ManageCaffeineOptionsPage extends ConsumerWidget {
       body: options.when(
         data: (options) {
           return ReorderableListView.builder(
+            padding: const EdgeInsets.only(bottom: 100),
             itemCount: options.length,
             onReorder: (oldIndex, newIndex) {
               if (newIndex > oldIndex) {

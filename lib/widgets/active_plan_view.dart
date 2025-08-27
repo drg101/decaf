@@ -2,6 +2,7 @@ import 'package:decaf/constants/colors.dart';
 import 'package:decaf/models/taper_plan.dart';
 import 'package:decaf/providers/events_provider.dart';
 import 'package:decaf/providers/taper_plan_provider.dart';
+import 'package:decaf/utils/analytics.dart';
 import 'package:decaf/utils/taper_calculator.dart';
 import 'package:decaf/widgets/calendar_view.dart';
 import 'package:flutter/material.dart';
@@ -27,6 +28,15 @@ class _ActivePlanViewState extends ConsumerState<ActivePlanView>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    
+    // Track when the active plan view is opened
+    Analytics.track(
+      AnalyticsEvent.viewActivePlan,
+      {
+        'preset': widget.plan.preset.name,
+        'total_days': widget.plan.totalDays,
+      },
+    );
   }
 
   @override
@@ -122,6 +132,14 @@ class _ActivePlanViewState extends ConsumerState<ActivePlanView>
   Widget _buildProgressCard(double progress, int daysElapsed, int totalDays) {
     return GestureDetector(
       onTap: () {
+        Analytics.track(
+          AnalyticsEvent.tapProgressCard,
+          {
+            'progress_percentage': (progress * 100).round(),
+            'days_elapsed': daysElapsed,
+            'total_days': totalDays,
+          },
+        );
         _tabController.animateTo(1); // Navigate to calendar tab (index 1)
       },
       child: Card(
@@ -421,6 +439,14 @@ class _ActivePlanViewState extends ConsumerState<ActivePlanView>
           ),
           TextButton(
             onPressed: () async {
+              Analytics.track(
+                AnalyticsEvent.resetTaperPlan,
+                {
+                  'preset': widget.plan.preset.name,
+                  'days_completed': DateTime.now().difference(widget.plan.startDate).inDays + 1,
+                  'total_days': widget.plan.totalDays,
+                },
+              );
               await ref.read(taperPlanProvider.notifier).deactivateCurrentPlan();
               if (mounted) {
                 Navigator.pop(context);

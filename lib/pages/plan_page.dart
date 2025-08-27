@@ -2,6 +2,7 @@ import 'package:decaf/constants/colors.dart';
 import 'package:decaf/pages/plan_creation_page.dart';
 import 'package:decaf/providers/settings_provider.dart';
 import 'package:decaf/providers/taper_plan_provider.dart';
+import 'package:decaf/utils/analytics.dart';
 import 'package:decaf/widgets/active_plan_view.dart';
 import 'package:decaf/widgets/taper_plan_preview.dart';
 import 'package:flutter/material.dart';
@@ -82,7 +83,10 @@ class PlanPage extends ConsumerWidget {
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                onPressed: () => _navigateToCreatePlan(context, ref),
+                onPressed: () {
+                  Analytics.track(AnalyticsEvent.startPlanCreation);
+                  _navigateToCreatePlan(context, ref);
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.caffeine,
                   foregroundColor: Colors.white,

@@ -105,15 +105,12 @@ class HomePage extends ConsumerWidget {
                             selectedDate.subtract(const Duration(days: 1));
                       },
                     ),
-                    Expanded(
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Padding(
-                          padding: const EdgeInsets.only(left: 16.0),
-                          child: Text(
-                            _formatDate(selectedDate),
-                            style: Theme.of(context).textTheme.headlineSmall,
-                          ),
+                    SizedBox(
+                      width: 110, // Reserved space for date text
+                      child: Center(
+                        child: Text(
+                          _formatDate(selectedDate),
+                          style: Theme.of(context).textTheme.headlineSmall,
                         ),
                       ),
                     ),
@@ -134,6 +131,7 @@ class HomePage extends ConsumerWidget {
                         },
                       ),
                     ),
+                    const Spacer(),
                     IconButton(
                       icon: const Icon(Icons.settings),
                       onPressed: () {

@@ -3,6 +3,7 @@ import 'package:decaf/models/taper_plan.dart';
 import 'package:decaf/models/taper_preset.dart';
 import 'package:decaf/providers/events_provider.dart';
 import 'package:decaf/providers/taper_plan_provider.dart';
+import 'package:decaf/utils/analytics.dart';
 import 'package:decaf/utils/taper_calculator.dart';
 import 'package:decaf/widgets/preset_selector.dart';
 import 'package:decaf/widgets/custom_taper_editor.dart';
@@ -104,45 +105,47 @@ class _PlanCreationPageState extends ConsumerState<PlanCreationPage> {
           ),
           
           // Navigation buttons
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).scaffoldBackgroundColor,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, -5),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                if (_currentStep > 0)
-                  TextButton(
-                    onPressed: _isLoading ? null : _previousStep,
-                    child: const Text('Back'),
+          SafeArea(
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).scaffoldBackgroundColor,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, -5),
                   ),
-                const Spacer(),
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _nextStep,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.caffeine,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                ],
+              ),
+              child: Row(
+                children: [
+                  if (_currentStep > 0)
+                    TextButton(
+                      onPressed: _isLoading ? null : _previousStep,
+                      child: const Text('Back'),
+                    ),
+                  const Spacer(),
+                  ElevatedButton(
+                    onPressed: _isLoading ? null : _nextStep,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.caffeine,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                    ),
+                    child: _isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : Text(_currentStep == 2 ? 'Create Plan' : 'Next'),
                   ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        )
-                      : Text(_currentStep == 2 ? 'Create Plan' : 'Next'),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],
@@ -173,6 +176,10 @@ class _PlanCreationPageState extends ConsumerState<PlanCreationPage> {
           PresetSelector(
             selectedPreset: _selectedPreset,
             onPresetSelected: (preset) {
+              Analytics.track(
+                AnalyticsEvent.selectTaperPreset,
+                {'preset': preset.name},
+              );
               setState(() {
                 _selectedPreset = preset;
               });
@@ -222,7 +229,17 @@ class _PlanCreationPageState extends ConsumerState<PlanCreationPage> {
                         keyboardType: TextInputType.number,
                         inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                         onChanged: (value) {
-                          _startingAmount = double.tryParse(value) ?? 0;
+                          final newAmount = double.tryParse(value) ?? 0;
+                          if (_startingAmount != null && newAmount != _startingAmount) {
+                            Analytics.track(
+                              AnalyticsEvent.modifyStartingAmount,
+                              {
+                                'original_amount': _startingAmount ?? 0,
+                                'new_amount': newAmount,
+                              },
+                            );
+                          }
+                          _startingAmount = newAmount;
                         },
                       ),
                     ),
@@ -262,8 +279,18 @@ class _PlanCreationPageState extends ConsumerState<PlanCreationPage> {
                     divisions: 10,
                     label: '$_durationWeeks weeks',
                     onChanged: (value) {
+                      final newDuration = value.toInt();
+                      if (newDuration != _durationWeeks) {
+                        Analytics.track(
+                          AnalyticsEvent.adjustPlanDuration,
+                          {
+                            'old_duration_weeks': _durationWeeks,
+                            'new_duration_weeks': newDuration,
+                          },
+                        );
+                      }
                       setState(() {
-                        _durationWeeks = value.toInt();
+                        _durationWeeks = newDuration;
                       });
                     },
                   ),
@@ -301,8 +328,18 @@ class _PlanCreationPageState extends ConsumerState<PlanCreationPage> {
                       keyboardType: TextInputType.number,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       onChanged: (value) {
+                        final newAmount = double.tryParse(value) ?? 50;
+                        if (newAmount != _stepDownAmount) {
+                          Analytics.track(
+                            AnalyticsEvent.configureStepDown,
+                            {
+                              'step_reduction_amount': newAmount,
+                              'step_interval_days': _stepDownIntervalDays,
+                            },
+                          );
+                        }
                         setState(() {
-                          _stepDownAmount = double.tryParse(value) ?? 50;
+                          _stepDownAmount = newAmount;
                         });
                       },
                     ),
@@ -323,8 +360,18 @@ class _PlanCreationPageState extends ConsumerState<PlanCreationPage> {
                     divisions: 13,
                     label: '$_stepDownIntervalDays days',
                     onChanged: (value) {
+                      final newInterval = value.toInt();
+                      if (newInterval != _stepDownIntervalDays) {
+                        Analytics.track(
+                          AnalyticsEvent.configureStepDown,
+                          {
+                            'step_reduction_amount': _stepDownAmount,
+                            'step_interval_days': newInterval,
+                          },
+                        );
+                      }
                       setState(() {
-                        _stepDownIntervalDays = value.toInt();
+                        _stepDownIntervalDays = newInterval;
                       });
                     },
                   ),
@@ -343,6 +390,13 @@ class _PlanCreationPageState extends ConsumerState<PlanCreationPage> {
                 startingAmount: _startingAmount!,
                 customTargets: _customTargets,
                 onTargetsChanged: (targets) {
+                  Analytics.track(
+                    AnalyticsEvent.customizeTargets,
+                    {
+                      'custom_targets_count': targets.length,
+                      'duration_weeks': _durationWeeks,
+                    },
+                  );
                   setState(() {
                     _customTargets = targets;
                   });
@@ -566,6 +620,16 @@ class _PlanCreationPageState extends ConsumerState<PlanCreationPage> {
     try {
       final plan = _createPlanFromConfiguration();
       await ref.read(taperPlanProvider.notifier).createPlan(plan);
+      
+      Analytics.track(
+        AnalyticsEvent.completePlanCreation,
+        {
+          'preset': _selectedPreset!.name,
+          'duration_weeks': _durationWeeks,
+          'starting_amount': _startingAmount ?? 0,
+          'custom_targets_count': _customTargets.length,
+        },
+      );
       
       if (mounted) {
         Navigator.of(context).pop(true); // Return true to indicate success

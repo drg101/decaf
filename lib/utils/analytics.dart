@@ -16,6 +16,16 @@ enum AnalyticsEvent {
   navigateDate,
   requestAppReview,
   resetAccount,
+  startPlanCreation,
+  selectTaperPreset,
+  completePlanCreation,
+  resetTaperPlan,
+  modifyStartingAmount,
+  adjustPlanDuration,
+  configureStepDown,
+  customizeTargets,
+  viewActivePlan,
+  tapProgressCard,
 }
 
 class Analytics {

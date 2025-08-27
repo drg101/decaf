@@ -22,7 +22,7 @@ class ManageSymptomsPage extends ConsumerWidget {
           final negativeSymptoms = symptoms.where((s) => s.connotation == SymptomConnotation.negative).toList();
           
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 116.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
