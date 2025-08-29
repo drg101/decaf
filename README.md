@@ -12,5 +12,5 @@
 🎯 You're in control - Pick a plan that fits your life, not some algorithm's idea
 🩺 Know what to expect - Track headaches, fatigue, and other fun withdrawal stuff
 
-## It's based on actual research
+## Gradual approach
 ✅ Gradual reduction works better than cold turkey. You decide how gradual.
