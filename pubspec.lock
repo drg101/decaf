@@ -29,8 +29,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "5bf9ff8f5c0c5fd4ab52c03dc2f3a9fbfa6b723f"
-      resolved-ref: "5bf9ff8f5c0c5fd4ab52c03dc2f3a9fbfa6b723f"
+      ref: "00bb47524f4d2a6852cd1ef6fb2da01decaa6444"
+      resolved-ref: "00bb47524f4d2a6852cd1ef6fb2da01decaa6444"
       url: "git@github.com:drg101/beaverlog_flutter.git"
     source: git
     version: "0.0.2"
