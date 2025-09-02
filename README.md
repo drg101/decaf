@@ -14,10 +14,12 @@
 
 ## Screenshots
 
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-  <img src="assets/readme/1.png" alt="Decaf Screenshot 1" style="border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); width: 100%;" />
-  <img src="assets/readme/2.png" alt="Decaf Screenshot 2" style="border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); width: 100%;" />
-  <img src="assets/readme/3.png" alt="Decaf Screenshot 3" style="border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); width: 100%;" />
+<div>
+  <img src="assets/readme/1.png" alt="Decaf Screenshot 1" style="border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); max-width: 200px; height: auto;" />
+  &nbsp;
+  <img src="assets/readme/2.png" alt="Decaf Screenshot 2" style="border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); max-width: 200px; height: auto;" />
+  &nbsp;
+  <img src="assets/readme/3.png" alt="Decaf Screenshot 3" style="border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); max-width: 200px; height: auto;" />
 </div>
 
 ## What it does
