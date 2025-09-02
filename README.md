@@ -15,11 +15,11 @@
 ## Screenshots
 
 <div>
-  <img src="assets/readme/1.png" alt="Decaf Screenshot 1" style="border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); max-width: 200px; height: auto;" />
+  <img src="assets/readme/1.png" alt="Decaf Screenshot 1" width="200" height="432" />
   &nbsp;
-  <img src="assets/readme/2.png" alt="Decaf Screenshot 2" style="border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); max-width: 200px; height: auto;" />
+  <img src="assets/readme/2.png" alt="Decaf Screenshot 2" width="200" height="432" />
   &nbsp;
-  <img src="assets/readme/3.png" alt="Decaf Screenshot 3" style="border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); max-width: 200px; height: auto;" />
+  <img src="assets/readme/3.png" alt="Decaf Screenshot 3" width="200" height="432" />
 </div>
 
 ## What it does
