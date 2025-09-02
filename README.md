@@ -2,10 +2,14 @@
 
 **A simple app for quitting caffeine. Plan, track, and monitor your caffeine intake until it hits 0.**
 
-<div align="center">
-[![App Store](assets/readme/app_store_badge.svg)](https://apps.apple.com/us/app/decaf-quit-caffeine-fast/id6751217376)
-&nbsp;&nbsp;&nbsp;&nbsp;
-[![Google Play](assets/readme/google_play_badge.png)](https://play.google.com/store/apps/details?id=com.rootcause.decaf&pcampaignid=web_share)
+<div>
+  <a href="https://apps.apple.com/us/app/decaf-quit-caffeine-fast/id6751217376" target="_blank" rel="noopener noreferrer">
+    <img src="assets/readme/app_store_badge.svg" alt="App Store" height="50" width="150" style="object-fit: contain;" />
+  </a>
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <a href="https://play.google.com/store/apps/details?id=com.rootcause.decaf&pcampaignid=web_share" target="_blank" rel="noopener noreferrer">
+    <img src="assets/readme/google_play_badge.png" alt="Google Play" height="50" width="168.75" style="object-fit: contain;" />
+  </a>
 </div>
 
 ## What it does
