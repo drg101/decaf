@@ -43,9 +43,9 @@ class TaperProgressChart extends StatelessWidget {
             const SizedBox(height: 8),
             Row(
               children: [
-                _buildLegendItem('Planned', AppColors.caffeine, true), // dashed
+                _buildLegendItem('Planned', Colors.grey[600]!, true), // dashed
                 const SizedBox(width: 16),
-                _buildLegendItem('Actual', Colors.blue, false), // solid
+                _buildLegendItem('Actual', AppColors.caffeine, false), // solid
               ],
             ),
             const SizedBox(height: 16),
