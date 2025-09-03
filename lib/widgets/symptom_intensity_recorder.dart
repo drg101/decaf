@@ -66,11 +66,12 @@ class _SymptomIntensityRecorderState extends State<SymptomIntensityRecorder> {
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         children: [
-          Text(
-            '${widget.symptom.emoji} ${widget.symptom.name}',
-            style: Theme.of(context).textTheme.titleMedium,
+          Expanded(
+            child: Text(
+              '${widget.symptom.emoji} ${widget.symptom.name}',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
           ),
-          const Spacer(),
           Row(
             children: List.generate(5, (index) {
               return GestureDetector(

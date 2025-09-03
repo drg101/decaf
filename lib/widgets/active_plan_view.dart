@@ -5,6 +5,7 @@ import 'package:decaf/providers/taper_plan_provider.dart';
 import 'package:decaf/utils/analytics.dart';
 import 'package:decaf/utils/taper_calculator.dart';
 import 'package:decaf/widgets/calendar_view.dart';
+import 'package:decaf/widgets/taper_progress_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -107,6 +108,11 @@ class _ActivePlanViewState extends ConsumerState<ActivePlanView>
         children: [
           // Progress overview
           _buildProgressCard(progress, daysElapsed, totalDays),
+          
+          const SizedBox(height: 16),
+          
+          // Progress chart
+          TaperProgressChart(plan: widget.plan, events: events),
           
           const SizedBox(height: 16),
           

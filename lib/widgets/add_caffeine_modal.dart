@@ -1,7 +1,9 @@
+import 'package:decaf/pages/feedback_popup.dart';
 import 'package:decaf/pages/manage_caffeine_options.dart';
 import 'package:decaf/providers/caffeine_options_provider.dart';
 import 'package:decaf/providers/date_provider.dart';
 import 'package:decaf/providers/events_provider.dart';
+import 'package:decaf/providers/settings_provider.dart';
 import 'package:decaf/utils/analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -126,7 +128,7 @@ class _AddCaffeineModalState extends ConsumerState<AddCaffeineModal> {
                     child: ElevatedButton(
                       onPressed:
                           _caffeineAmount > 0
-                              ? () {
+                              ? () async {
                                 Analytics.track(
                                   AnalyticsEvent.addCaffeineEntry,
                                   {
@@ -147,7 +149,12 @@ class _AddCaffeineModalState extends ConsumerState<AddCaffeineModal> {
                                   now.minute,
                                   now.second,
                                 );
-                                ref
+                                
+                                // Record first app usage
+                                await ref.read(settingsProvider.notifier).recordFirstAppUsage();
+                                
+                                // Add the event
+                                await ref
                                     .read(eventsProvider.notifier)
                                     .addEvent(
                                       EventType.caffeine,
@@ -155,7 +162,23 @@ class _AddCaffeineModalState extends ConsumerState<AddCaffeineModal> {
                                       _caffeineAmount,
                                       timestamp,
                                     );
+                                
                                 Navigator.pop(context);
+                                
+                                // Check if we should show feedback popup
+                                final events = await ref.read(eventsProvider.future);
+                                final settingsNotifier = ref.read(settingsProvider.notifier);
+                                if (settingsNotifier.shouldShowFeedbackPopup(events)) {
+                                  await settingsNotifier.markFeedbackPopupShown();
+                                  Analytics.track(AnalyticsEvent.feedbackPopupShown);
+                                  
+                                  if (context.mounted) {
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) => const FeedbackPopupPage(),
+                                    );
+                                  }
+                                }
                               }
                               : null,
                       child: const Text('Add'),

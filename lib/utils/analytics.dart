@@ -26,6 +26,9 @@ enum AnalyticsEvent {
   customizeTargets,
   viewActivePlan,
   tapProgressCard,
+  starOnGithubFromPopup,
+  requestAppReviewFromPopup,
+  feedbackPopupShown,
 }
 
 class Analytics {

@@ -4,24 +4,38 @@ import 'package:sembast/sembast.dart';
 
 class AppSettings {
   final bool taperPlanningEnabled;
+  final DateTime? firstAppUsage;
+  final bool feedbackPopupShown;
 
   const AppSettings({
     this.taperPlanningEnabled = false,
+    this.firstAppUsage,
+    this.feedbackPopupShown = false,
   });
 
   Map<String, dynamic> toJson() => {
         'taperPlanningEnabled': taperPlanningEnabled,
+        'firstAppUsage': firstAppUsage?.millisecondsSinceEpoch,
+        'feedbackPopupShown': feedbackPopupShown,
       };
 
   static AppSettings fromJson(Map<String, dynamic>? json) => AppSettings(
         taperPlanningEnabled: json?['taperPlanningEnabled'] as bool? ?? false,
+        firstAppUsage: json?['firstAppUsage'] != null 
+            ? DateTime.fromMillisecondsSinceEpoch(json!['firstAppUsage'] as int)
+            : null,
+        feedbackPopupShown: json?['feedbackPopupShown'] as bool? ?? false,
       );
 
   AppSettings copyWith({
     bool? taperPlanningEnabled,
+    DateTime? firstAppUsage,
+    bool? feedbackPopupShown,
   }) {
     return AppSettings(
       taperPlanningEnabled: taperPlanningEnabled ?? this.taperPlanningEnabled,
+      firstAppUsage: firstAppUsage ?? this.firstAppUsage,
+      feedbackPopupShown: feedbackPopupShown ?? this.feedbackPopupShown,
     );
   }
 }
@@ -67,6 +81,48 @@ class SettingsNotifier extends AsyncNotifier<AppSettings> {
     );
     await _saveSettings(newSettings);
     state = AsyncData(newSettings);
+  }
+
+  Future<void> recordFirstAppUsage() async {
+    final currentSettings = await future;
+    if (currentSettings.firstAppUsage == null) {
+      final newSettings = currentSettings.copyWith(
+        firstAppUsage: DateTime.now(),
+      );
+      await _saveSettings(newSettings);
+      state = AsyncData(newSettings);
+    }
+  }
+
+  Future<void> markFeedbackPopupShown() async {
+    final currentSettings = await future;
+    final newSettings = currentSettings.copyWith(
+      feedbackPopupShown: true,
+    );
+    await _saveSettings(newSettings);
+    state = AsyncData(newSettings);
+  }
+
+  bool shouldShowFeedbackPopup(List<dynamic> events) {
+    final settings = state.value;
+    if (settings == null) return false;
+    
+    // Don't show if already shown
+    if (settings.feedbackPopupShown) return false;
+    
+    // Don't show if no first usage recorded
+    if (settings.firstAppUsage == null) return false;
+    
+    // Check if it's been at least 2 days since first usage
+    final daysSinceFirst = DateTime.now().difference(settings.firstAppUsage!).inDays;
+    if (daysSinceFirst < 2) return false;
+    
+    // Check if user has added caffeine events
+    final caffeineEvents = events.where((event) => 
+      event.toString().contains('caffeine') || event.toString().contains('EventType.caffeine')
+    ).toList();
+    
+    return caffeineEvents.isNotEmpty;
   }
 }
 

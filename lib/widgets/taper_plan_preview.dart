@@ -13,14 +13,14 @@ class TaperPlanPreview extends ConsumerWidget {
         title: const Text('Taper Planning'),
         automaticallyImplyLeading: false,
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+            const SizedBox(height: 50),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
                   Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
@@ -99,7 +99,7 @@ class TaperPlanPreview extends ConsumerWidget {
                   ),
                 ],
               ),
-            ),
+            const SizedBox(height: 50),
             SizedBox(
               width: double.infinity,
               height: 50,
