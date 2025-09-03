@@ -1,9 +1,11 @@
 import 'package:decaf/constants/colors.dart';
+import 'package:decaf/pages/feedback_popup.dart';
 import 'package:decaf/pages/manage_symptoms_page.dart';
 import 'package:decaf/pages/settings.dart';
 import 'package:decaf/providers/chart_visibility_provider.dart';
 import 'package:decaf/providers/date_provider.dart';
 import 'package:decaf/providers/events_provider.dart';
+import 'package:decaf/providers/settings_provider.dart';
 import 'package:decaf/utils/analytics.dart';
 import 'package:decaf/utils/symptom_calculator.dart';
 import 'package:decaf/widgets/daily_caffeine_chart.dart';
@@ -84,6 +86,7 @@ class HomePage extends ConsumerWidget {
     final isToday = _isToday(selectedDate);
     final eventsAsync = ref.watch(eventsProvider);
     final symptomsAsync = ref.watch(symptomsProvider);
+    final settingsAsync = ref.watch(settingsProvider);
 
     return Scaffold(
       body: SafeArea(
@@ -114,21 +117,111 @@ class HomePage extends ConsumerWidget {
                         ),
                       ),
                     ),
-                    Visibility(
-                      visible: !isToday,
-                      maintainSize: true,
-                      maintainAnimation: true,
-                      maintainState: true,
-                      child: IconButton(
-                        icon: const Icon(Icons.chevron_right),
-                        onPressed: () {
-                          Analytics.track(
-                            AnalyticsEvent.navigateDate,
-                            {'direction': 'next'},
+                    // Show heart icon when feedback should be shown on Today view, otherwise show right chevron
+                    eventsAsync.when(
+                      data: (events) => settingsAsync.when(
+                        data: (settings) {
+                          final settingsNotifier = ref.read(settingsProvider.notifier);
+                          final shouldShowHeart = isToday && settingsNotifier.shouldShowFeedbackPopup(events);
+                          
+                          return Visibility(
+                            visible: !isToday || shouldShowHeart,
+                            maintainSize: true,
+                            maintainAnimation: true,
+                            maintainState: true,
+                            child: IconButton(
+                              icon: Icon(shouldShowHeart ? Icons.favorite : Icons.chevron_right),
+                              onPressed: shouldShowHeart
+                                  ? () async {
+                                      Analytics.track(AnalyticsEvent.feedbackPopupShown);
+                                      await settingsNotifier.markFeedbackPopupShown();
+                                      
+                                      if (context.mounted) {
+                                        showDialog(
+                                          context: context,
+                                          builder: (context) => const FeedbackPopupPage(),
+                                        );
+                                      }
+                                    }
+                                  : () {
+                                      Analytics.track(
+                                        AnalyticsEvent.navigateDate,
+                                        {'direction': 'next'},
+                                      );
+                                      ref.read(selectedDateProvider.notifier).state =
+                                          selectedDate.add(const Duration(days: 1));
+                                    },
+                            ),
                           );
-                          ref.read(selectedDateProvider.notifier).state =
-                              selectedDate.add(const Duration(days: 1));
                         },
+                        loading: () => Visibility(
+                          visible: !isToday,
+                          maintainSize: true,
+                          maintainAnimation: true,
+                          maintainState: true,
+                          child: IconButton(
+                            icon: const Icon(Icons.chevron_right),
+                            onPressed: () {
+                              Analytics.track(
+                                AnalyticsEvent.navigateDate,
+                                {'direction': 'next'},
+                              );
+                              ref.read(selectedDateProvider.notifier).state =
+                                  selectedDate.add(const Duration(days: 1));
+                            },
+                          ),
+                        ),
+                        error: (_, __) => Visibility(
+                          visible: !isToday,
+                          maintainSize: true,
+                          maintainAnimation: true,
+                          maintainState: true,
+                          child: IconButton(
+                            icon: const Icon(Icons.chevron_right),
+                            onPressed: () {
+                              Analytics.track(
+                                AnalyticsEvent.navigateDate,
+                                {'direction': 'next'},
+                              );
+                              ref.read(selectedDateProvider.notifier).state =
+                                  selectedDate.add(const Duration(days: 1));
+                            },
+                          ),
+                        ),
+                      ),
+                      loading: () => Visibility(
+                        visible: !isToday,
+                        maintainSize: true,
+                        maintainAnimation: true,
+                        maintainState: true,
+                        child: IconButton(
+                          icon: const Icon(Icons.chevron_right),
+                          onPressed: () {
+                            Analytics.track(
+                              AnalyticsEvent.navigateDate,
+                              {'direction': 'next'},
+                            );
+                            ref.read(selectedDateProvider.notifier).state =
+                                selectedDate.add(const Duration(days: 1));
+                          },
+                        ),
+                      ),
+                      error: (_, __) => Visibility(
+                        visible: !isToday,
+                        maintainSize: true,
+                        maintainAnimation: true,
+                        maintainState: true,
+                        child: IconButton(
+                          icon: const Icon(Icons.chevron_right),
+                          onPressed: () {
+                            Analytics.track(
+                              AnalyticsEvent.navigateDate,
+                              {'direction': 'next'},
+                            );
+                            ref.read(selectedDateProvider.notifier).state =
+                                selectedDate.add(const Duration(days: 1));
+                          },
+                        ),
                       ),
                     ),
                     const Spacer(),

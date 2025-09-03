@@ -113,9 +113,9 @@ class SettingsNotifier extends AsyncNotifier<AppSettings> {
     // Don't show if no first usage recorded
     if (settings.firstAppUsage == null) return false;
     
-    // Check if it's been at least 2 days since first usage
+    // Check if it's been at least 1 full day since first usage
     final daysSinceFirst = DateTime.now().difference(settings.firstAppUsage!).inDays;
-    if (daysSinceFirst < 2) return false;
+    if (daysSinceFirst < 1) return false;
     
     // Check if user has added caffeine events
     final caffeineEvents = events.where((event) => 

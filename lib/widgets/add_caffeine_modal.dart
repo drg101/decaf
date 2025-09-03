@@ -1,4 +1,3 @@
-import 'package:decaf/pages/feedback_popup.dart';
 import 'package:decaf/pages/manage_caffeine_options.dart';
 import 'package:decaf/providers/caffeine_options_provider.dart';
 import 'package:decaf/providers/date_provider.dart';
@@ -164,21 +163,6 @@ class _AddCaffeineModalState extends ConsumerState<AddCaffeineModal> {
                                     );
                                 
                                 Navigator.pop(context);
-                                
-                                // Check if we should show feedback popup
-                                final events = await ref.read(eventsProvider.future);
-                                final settingsNotifier = ref.read(settingsProvider.notifier);
-                                if (settingsNotifier.shouldShowFeedbackPopup(events)) {
-                                  await settingsNotifier.markFeedbackPopupShown();
-                                  Analytics.track(AnalyticsEvent.feedbackPopupShown);
-                                  
-                                  if (context.mounted) {
-                                    showDialog(
-                                      context: context,
-                                      builder: (context) => const FeedbackPopupPage(),
-                                    );
-                                  }
-                                }
                               }
                               : null,
                       child: const Text('Add'),
