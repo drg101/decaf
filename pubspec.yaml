@@ -1,7 +1,7 @@
 name: decaf
 description: "Quit caffeine fast."
 publish_to: 'none'
-version: 2025.09.03+16
+version: 2025.09.04+17
 
 environment:
   sdk: ^3.7.2
