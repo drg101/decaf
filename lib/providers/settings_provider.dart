@@ -115,7 +115,7 @@ class SettingsNotifier extends AsyncNotifier<AppSettings> {
 
     // Check if it's been at least 1 full day since first usage
     final daysSinceFirst =
-        DateTime.now().difference(settings.firstAppUsage!).inMinutes;
+        DateTime.now().difference(settings.firstAppUsage!).inDays;
 
     if (daysSinceFirst < 1) return false;
 
