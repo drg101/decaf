@@ -1,4 +1,5 @@
 import 'package:decaf/providers/database_provider.dart';
+import 'package:decaf/providers/events_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sembast/sembast.dart';
 
@@ -14,18 +15,19 @@ class AppSettings {
   });
 
   Map<String, dynamic> toJson() => {
-        'taperPlanningEnabled': taperPlanningEnabled,
-        'firstAppUsage': firstAppUsage?.millisecondsSinceEpoch,
-        'feedbackPopupShown': feedbackPopupShown,
-      };
+    'taperPlanningEnabled': taperPlanningEnabled,
+    'firstAppUsage': firstAppUsage?.millisecondsSinceEpoch,
+    'feedbackPopupShown': feedbackPopupShown,
+  };
 
   static AppSettings fromJson(Map<String, dynamic>? json) => AppSettings(
-        taperPlanningEnabled: json?['taperPlanningEnabled'] as bool? ?? false,
-        firstAppUsage: json?['firstAppUsage'] != null 
+    taperPlanningEnabled: json?['taperPlanningEnabled'] as bool? ?? false,
+    firstAppUsage:
+        json?['firstAppUsage'] != null
             ? DateTime.fromMillisecondsSinceEpoch(json!['firstAppUsage'] as int)
             : null,
-        feedbackPopupShown: json?['feedbackPopupShown'] as bool? ?? false,
-      );
+    feedbackPopupShown: json?['feedbackPopupShown'] as bool? ?? false,
+  );
 
   AppSettings copyWith({
     bool? taperPlanningEnabled,
@@ -96,36 +98,37 @@ class SettingsNotifier extends AsyncNotifier<AppSettings> {
 
   Future<void> markFeedbackPopupShown() async {
     final currentSettings = await future;
-    final newSettings = currentSettings.copyWith(
-      feedbackPopupShown: true,
-    );
+    final newSettings = currentSettings.copyWith(feedbackPopupShown: true);
     await _saveSettings(newSettings);
     state = AsyncData(newSettings);
   }
 
-  bool shouldShowFeedbackPopup(List<dynamic> events) {
+  bool shouldShowFeedbackPopup(List<Event> events) {
     final settings = state.value;
     if (settings == null) return false;
-    
+
     // Don't show if already shown
     if (settings.feedbackPopupShown) return false;
-    
+
     // Don't show if no first usage recorded
     if (settings.firstAppUsage == null) return false;
-    
+
     // Check if it's been at least 1 full day since first usage
-    final daysSinceFirst = DateTime.now().difference(settings.firstAppUsage!).inDays;
+    final daysSinceFirst =
+        DateTime.now().difference(settings.firstAppUsage!).inMinutes;
+
     if (daysSinceFirst < 1) return false;
-    
+
     // Check if user has added caffeine events
-    final caffeineEvents = events.where((event) => 
-      event.toString().contains('caffeine') || event.toString().contains('EventType.caffeine')
-    ).toList();
-    
+    final caffeineEvents =
+        events.where((event) => event.type == EventType.caffeine).toList();
+
     return caffeineEvents.isNotEmpty;
   }
 }
 
-final settingsProvider = AsyncNotifierProvider<SettingsNotifier, AppSettings>(() {
-  return SettingsNotifier();
-});
+final settingsProvider = AsyncNotifierProvider<SettingsNotifier, AppSettings>(
+  () {
+    return SettingsNotifier();
+  },
+);
